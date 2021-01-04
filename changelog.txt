@@ -1,3 +1,290 @@
+VERSION[1.4.170][2020/06/20]
+ * Added 3.11.0 passive tree
+ * Updated item bases, mods, and enchantments for 3.11.0
+VERSION[1.4.169][2020/03/31]
+ * Fixed Stormbind and Barrage Support not importing correctly when importing a character's skills
+ * Fixed certain Cluster Jewels not importing correctly
+ * Fixed "Added Small Passive Skills have X% increased Effect" also affecting notables
+VERSION[1.4.168][2020/03/24]
+ * Fixed Medium Cluster Jewels with 1 socket and 1 notable generating bad clusters
+VERSION[1.4.167][2020/03/22]
+ * Small passives in Large and Medium Cluster Jewel wheels now have the correct node artwork
+ * Fixed nodes allocated through Intuitive Leap not remaining allocated after loading the build
+VERSION[1.4.166][2020/03/22]
+ * Fixed ordering of notables in Cluster Jewel wheels (again)
+ * Fixed node location popups not correctly centering on the node in 3.10 passive trees
+VERSION[1.4.165][2020/03/18]
+ * Added the following new unique Cluster Jewels:
+	* Calamitous Visions
+	* The Front Line
+	* The Interrogation
+	* Kitava's Teachings
+	* Megalomaniac
+	* Natural Affinity
+	* One With Nothing
+	* The Siege
+    * Voices
+ * Added base radius values for Blade Blast and Stormbind
+ * Spells supported by Spellslinger now correctly show Average Damage instead of DPS
+ * Disabled the Strength, Dexterity, and Intelligence Small Cluster Jewel types, as they cannot drop in-game
+VERSION[1.4.164][2020/03/17]
+ * Added the following new gems:
+    * Arcane Cloak
+	* Blade Blast
+	* Kinetic Bolt
+	* Spellslinger
+	* Stormbind
+	* Archmage
+	* Second Wind
+ * Updated enchantments for 3.10.0
+VERSION[1.4.163][2020/03/16]
+ * Applied the skill reworks and balance changes for 3.10.0
+    * New skills are still to come
+ * Fixed ordering of notables in Cluster Jewel wheels
+ * Various fixes to the layout of passives in Cluster Jewel wheels
+ * Fixed issue allowing 2 Notable passives to be crafted onto Small Cluster Jewels
+ * Duplicating passive trees now correctly copies allocated nodes in Cluster Jewel wheels
+ * Fixed Minion Instability
+VERSION[1.4.162][2020/03/15]
+ * Fixed Cluster Jewels not updating their cluster layouts when edited
+ * Fixed Rigwald's Curse not correctly converting Claw modifiers
+VERSION[1.4.161][2020/03/15]
+ * Fixed Cluster Jewels sometimes having their added node type incorrectly recognised
+ * Fixed Cluster Jewels always adding the maximum number of passives
+ * Fixed Node Power breaking when Cluster Jewels are equipped
+VERSION[1.4.160][2020/03/15]
+ * Added support for Cluster jewels:
+    * Cluster Jewels can be crafted like other items
+	* Cluster Jewel templates have been added to the Rare items database
+	* Some of the notables granted by Cluster Jewels are not supported yet
+	* The various unique Cluster Jewels are not fully supported yet
+	* Note that when importing characters with Cluster Jewels, nodes in the clusters will not be allocated;
+	  this is because the game website's character API does not fully support Cluster Jewels yet
+ * Updated item bases and mods for 3.10
+ * Fixed character importing
+ * Various other minor fixes
+VERSION[1.4.159][2020/03/12]
+ * Fixed Ascendant nodes granting double the indended number of passive points
+ * Fixed weapon ailment modifiers not correctly applying
+ * Fixed Melee Strike Range modifiers not applying to Unarmed
+ * Fixed some Two Handed Weapon modifiers incorrectly applying to One Handed Weapons instead
+VERSION[1.4.158][2020/03/12]
+ * Added 3.10.0 passive tree
+    * Cluster jewels are currently unsupported
+VERSION[1.4.157][2019/12/20]
+ * Added a new unique item, The Savior
+ * Added the ability to show only non-Awakened supports (or only Awakened supports!); the option can be found in the
+   Skills tab under the socket group list
+ * Fix issue where gem levels would get reset on loading or importing a build
+VERSION[1.4.156][2019/12/16]
+ * Added the following unique items: (thanks ppoelzl)
+    * Astral Projector
+    * The Black Cane
+    * Crown of the Inward Eye
+    * Eye of Malice
+    * Fury Valve
+    * Hands of the High Templar
+    * The Ivory Tower
+    * Leash of Oblation
+	* Manastorm
+	* Mistwall
+    * Mother's Embrace
+    * Painseeker
+	* Warrior's Legacy
+    * Willowgift
+ * Implicits on items that are copied from in-game are now correctly handled. Additionally, the ability of the program 
+   to determine if modifiers on copied items are enchantments, implicits or explicits has been greatly improved, 
+   and should almost always be correct; also, applying enchantments to items with implicits will now work correctly.
+VERSION[1.4.155][2019/12/14]
+ * Fixed error when using Siege Ballista
+ * Fixed Artillery Ballista and Shrapnel Ballista not benefiting from Totem modifiers
+ * Fixed the added Fire Damage to Explosive Arrow's explosions not correctly applying
+VERSION[1.4.154][2019/12/14]
+ * Addeed the following new gems:
+    * Artillery Ballista
+	* Ensnaring Arrow
+	* Shrapnel Ballista
+	* Arrow Nova
+	* Barrage
+	* Greater Volley
+	* The 35 new Awakened support gems
+ * Applied the skill reworks and balance changes for 3.9.0
+ * Updated item bases, mods, and enchantments for 3.9.0
+VERSION[1.4.153][2019/12/11]
+ * Added 3.9.0 passive tree
+ * Applied unique balance changes from 3.9.0 (thanks ppoelzl)
+ * Updated many unique items that had changed in previous patches (thanks ppoelzl)
+ * Added Vermillion Ring base (apologies for this being missing for so long)
+VERSION[1.4.152][2019/09/15]
+ * Added support for anointments that grant notable passives
+ * Added support for Transfiguration of Body/Mind/Soul
+ * Added missing Legion uniques, and applied unique balance changes from 3.7 (thanks PJacek)
+ * Added the missing bonuses from the Feeding Frenzy buff
+ * Added the following spectres to the spectre library:
+    * Desecrated Saint
+    * Foreman
+	* Freezing Wolf
+    * Lunaris Concubine
+	* Lunarsworn Wintermage
+    * Slave Driver
+ * Fixed modifiers to Golem buff effect not applying to the buff from Summon Carrion Golem
+VERSION[1.4.151][2019/09/09]
+ * Fixed error with Minion Instability
+VERSION[1.4.150][2019/09/09]
+ * Added the following new gems:
+    * Cobra Lash
+	* Icicle Mine
+	* Pestilent Strike
+    * Plague Bearer (mostly non-functional)
+	* Stormblast Mine
+	* Summon Carrion Golem
+	* Summon Skitterbots
+	* Venom Gyre
+	* Withering Step (non-functional)
+	* Charged Mines
+	* Deathmark (The enemy can be set as Deathmarked in the Skill Options section of the Configuration tab)
+	* Feeding Frenzy (Feeding Frenzy can be activated in Skill Options)
+	* High-Impact Mine
+	* Infernal Legion
+	* Meat Shield (The enemy can be set as being "Near you" in Skill Options)
+	* Nightblade (non-functional)
+	* Swift Assembly
+ * Added support for the new Mine changes:
+    * When a Mine skill is selected, a new Active Mines option appears
+	* The skill's Mana Reservation will be multiplied by the number of Active Mines specified
+    * The various Mine auras are all supported; the stack count is determined by the Active Mines option
+ * Applied the skill reworks and balance changes for 3.8.0
+ * Updated item bases, mods, and enchantments for 3.8.0
+ * Added support for global Spell Skill Gem modifiers, and updated the +X Staff rare templates
+ * Updated minion Accuracy values
+ * Added support for the Added Chaos Damage granted by Despair
+ * The additional Critical Strike Chance granted by Assassin's Mark now works correctly
+ * The "less Mana Cost of Skills" stat on Sanctuary of Thought no longer incorrectly affects Mana Reservation
+ * "+X to level of all Minion Skill Gems" no longer incorrectly applies to Support Gems
+VERSION[1.4.149][2019/09/05]
+ * Fixed Vaal Pact not working
+VERSION[1.4.148][2019/09/05]
+ * Fixed crash with Resolute Technique
+ * Fixed Poison DPS not being calculated
+VERSION[1.4.147][2019/09/05]
+ * Added 3.8.0 passive tree
+VERSION[1.4.146][2019/06/09]
+ * Fixed Blood and Sand having the wrong maximum gem level
+VERSION[1.4.145][2019/06/09]
+ * Fixed passive tree art
+VERSION[1.4.144][2019/06/09]
+ * Updated passive tree
+ * Fixed Shield Charge not getting the correct damage stats
+VERSION[1.4.143][2019/06/09]
+ * Fixed various weapon modifiers not working correctly
+ * Fixed error that could occur when comparing 3.6 and 3.7 trees
+ * Fixed the chain count modifier on Snakepit not applying correctly
+VERSION[1.4.142][2019/06/09]
+ * Added the following new gems:
+    * Berserk
+    * Bladestorm (the buffs from the storms can be enabled in the Skill Options section of the Configuration tab)
+	* Blood and Sand (you can switch stances in Skill Options)
+	* Chain Hook
+    * Dash
+	* Flesh and Stone (you can switch stances in Skill Options)
+	* Frostblink
+	* Perforate
+	* Precision
+	* Pride
+    * Steelskin
+	* Close Combat (mostly non-functional)
+	* Impale (the Impale mechanic is still unsupported)
+	* Pulverise
+	* Rage
+	* Shockwave
+ * Applied the skill reworks and balance changes for 3.7.0
+    * Note that Cast While Channelling will not work correctly for the time being due to some significant changes
+ * Updated item bases and mods for 3.7.0
+ * Applied the accuracy changes from 3.7.0
+VERSION[1.4.141][2019/06/06]
+ * Fixed Rage degeneration applying incorrectly (again)
+VERSION[1.4.140][2019/06/06]
+ * Fixed Rage degeneration applying incorrectly
+VERSION[1.4.139][2019/06/06]
+ * The Rage option in the Configuration tab will now correctly show when the relevant passives are allocated
+VERSION[1.4.138][2019/06/05]
+ * Passive tree updated to 3.7.0
+ * Added support for multiple passive tree versions in one build:
+    * Trees in existing builds will default to the 3.6 tree
+    * New builds (or new trees in existing builds) will use the 3.7 tree
+    * Old trees can be converted to the latest version using a button that will appear at the bottom of the 
+	  Tree tab when viewing an old tree; this creates a copy of the tree, so you can switch back if needed
+VERSION[1.4.137][2019/04/10]
+ * Fixed issue preventing Cast while Channelling from working correctly
+VERSION[1.4.136][2019/04/07]
+ * You can now import characters from the console realms
+ * Updated item mods and skill gems to account for changes in recent patches
+ * Fixed issue preventing Icestorm's duration from scaling from Intelligence
+VERSION[1.4.135][2019/03/14]
+ * Fixed crafted mods on imported items not being recognised
+ * Storm Call now correctly shows DPS instead of just average damage
+VERSION[1.4.134][2019/03/12]
+ * Fixed various issues with importing fractured and synthesised items
+ * Fixed issues with stat comparisons in weapon tooltips
+VERSION[1.4.133][2019/03/12]
+ * The debuff durations of Bane and Soulrend are now correctly affected by Temporal Chains
+ * Bane is now correctly affected by modifiers to Curse Skills
+ * Synthesised items can now be imported
+VERSION[1.4.132][2019/03/10]
+ * Added the following new gems:
+    * Bane
+	* Divine Ire
+	* Purifying Flame
+	* Malevolence
+	* Soulrend
+	* Wave of Conviction (the type of Exposure being applied can be set in the Configuration tab)
+	* Zealotry
+	* Energy Leech
+	* Intensify (Intensity stacks can be set in the Configuration tab)
+	* Unleash (does not currently affect DPS)
+ * Applied the reworks for the following gems:
+    * Holy Flame Totem
+	* Storm Burst (DPS calculation isn't currently accurate)
+	* Infused Channelling (Infusion can be enabled in the Configuration tab)
+ * Added the following skills and supports from uniques:
+    * Lightning Aegis
+	* Precision
+	* Blessing (the aura and reservation durations for supported skills can be found in the Calcs tab)
+ * Applied all skill balance changes for 3.6
+ * Added the following 3.6 uniques: (thanks PJacek)
+    * Circle of Regret
+    * The Eternity Shroud
+	* Garb of the Ephemeral (Divinity can be enabled in the Configuration tab)
+	* Maloney's Mechanism
+	* Offering of the Serpent
+    * Vixen's Entrapment
+ * Updated the passive tree
+ * Updated item bases and mods for 3.6
+ * Winter Orb's hit rate is now correctly affected by modifiers to Cast Speed
+VERSION[1.4.131][2019/03/08]
+ * Updated boss curse effect penalty
+ * Removed min/max Crit Chance limits
+ * Fixed the passive tree node location popup showing the wrong locations
+VERSION[1.4.130][2019/03/07]
+ * Passive tree updated to 3.6
+ * Added the following 3.6 uniques: (thanks PJacek)
+    * Bottled Faith
+    * Circle of Nostalgia
+    * Hyrri's Truth (except the Precision skill)
+    * March of the Legion (except the Blessing support)
+	* Mask of the Tribunal
+	* Nebulis
+    * Perepiteia (except the Lightning Aegis skill)
+	* Storm's Gift
+ * Added most 3.5 uniques (thanks Patchumz and PJacek)
+ * Added support for Energy Shield Leech
+ * The stat comparisons in tooltips for non-equipped two handed weapons now show the changes from replacing both
+   weapons if you are dual wielding, rather than your main hand weapon only
+ * Added base radius values for Dark Pact (24), Vaal Blight (20), and Wither (18)
+ * Fixed issue preventing local life on hit modifiers from working correctly
+ * Storm Call now shows DPS as well as average damage
+ * Decay DPS is now only shown if the skill can deal Chaos Damage
+ * Fixed error when trying to add a custom modifier to Abyss Jewels
 VERSION[1.4.129][2019/01/13]
  * "while Focussed" modifiers are now correctly recognised
  * "+X to minimum Endurance Charges" now works correctly

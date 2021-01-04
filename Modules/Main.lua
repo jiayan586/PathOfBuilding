@@ -14,10 +14,7 @@ local m_sin = math.sin
 local m_cos = math.cos
 local m_pi = math.pi
 
-defaultTargetVersion = "2_6"
-liveTargetVersion = "3_0"
-targetVersionList = { "2_6", "3_0" }
-
+LoadModule("GameVersions")
 LoadModule("Modules/Common")
 LoadModule("Modules/Data")
 LoadModule("Modules/ModTools")
@@ -64,10 +61,16 @@ function main:Init()
 			LoadModule("Data/"..targetVersion.."/ModCache", modLib.parseModCache[targetVersion])
 		end
 	end
+
+	if launch.devMode and IsKeyDown("CTRL") and IsKeyDown("SHIFT") then
+		self.allowTreeDownload = true
+	end
 	
 	self.tree = { }
-	for _, targetVersion in ipairs(targetVersionList) do
-		self.tree[targetVersion] = new("PassiveTree", targetVersion)
+	for _, versionData in pairs(targetVersions) do
+		for _, treeVersion in ipairs(versionData.treeVersionList) do
+			self.tree[treeVersion] = new("PassiveTree", treeVersion)
+		end
 	end
 
 	ConPrintf("Loading item databases...")
@@ -92,11 +95,10 @@ function main:Init()
 			if newItem.base then
 				newItem:NormaliseQuality()
 				if newItem.crafted then
-					if newItem.base.implicit and (#newItem.modLines == 0 or newItem.modLines[1].custom) then
-						newItem.implicitLines = 0
+					if newItem.base.implicit and #newItem.implicitModLines == 0 then
+						-- Automatically add implicit
 						for line in newItem.base.implicit:gmatch("[^\n]+") do
-							newItem.implicitLines = newItem.implicitLines + 1
-							t_insert(newItem.modLines, newItem.implicitLines, { line = line })
+							t_insert(newItem.implicitModLines, { line = line })
 						end
 					end
 					newItem:Craft()
@@ -408,6 +410,7 @@ function main:LoadSettings()
 				self:SetMode(node.attrib.mode, unpack(args))
 			elseif node.elem == "Accounts" then
 				self.lastAccountName = node.attrib.lastAccountName
+				self.lastRealm = node.attrib.lastRealm
 				for _, child in ipairs(node) do
 					if child.elem == "Account" then
 						self.gameAccounts[child.attrib.accountName] = {
@@ -480,7 +483,7 @@ function main:SaveSettings()
 		t_insert(mode, child)
 	end
 	t_insert(setXML, mode)
-	local accounts = { elem = "Accounts", attrib = { lastAccountName = self.lastAccountName } }
+	local accounts = { elem = "Accounts", attrib = { lastAccountName = self.lastAccountName, lastRealm = self.lastRealm } }
 	for accountName, account in pairs(self.gameAccounts) do
 		t_insert(accounts, { elem = "Account", attrib = { accountName = accountName, sessionID = account.sessionID } })
 	end
@@ -654,7 +657,7 @@ end
 function main:DrawBackground(viewPort)
 	SetDrawLayer(nil, -100)
 	SetDrawColor(0.5, 0.5, 0.5)
-	DrawImage(self.tree[defaultTargetVersion].assets.Background1.handle, viewPort.x, viewPort.y, viewPort.width, viewPort.height, 0, 0, viewPort.width / 100, viewPort.height / 100)
+	DrawImage(self.tree["2_6"].assets.Background1.handle, viewPort.x, viewPort.y, viewPort.width, viewPort.height, 0, 0, viewPort.width / 100, viewPort.height / 100)
 	SetDrawLayer(nil, 0)
 end
 

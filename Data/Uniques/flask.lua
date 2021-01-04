@@ -68,7 +68,7 @@ Requires Level 30
 The Writhing Jar
 Hallowed Hybrid Flask
 Requires Level 60
-(75-65)% reduced Amount Recovered 
+(75-65)% reduced Amount Recovered
 Instant Recovery
 2 Enemy Writhing Worms escape the Flask when used
 (20-10)% reduced Charges used
@@ -87,14 +87,24 @@ Requires Level 68
 {variant:1}Gain (13-15)% of Elemental Damage as Extra Chaos Damage during effect
 {variant:2}Gain (10-15)% of Elemental Damage as Extra Chaos Damage during effect
 ]],[[
+Bottled Faith
+Sulphur Flask
+League: Synthesis
+Requires Level 35
+Creates Consecrated Ground on Use
+(30-50)% increased Duration
+Consecrated Ground created by this Flask has Tripled Radius
++(1.00-2.00)% to Critical Strike Chance against Enemies on Consecrated Ground during Effect
+Consecrated Ground created during Effect applies (7-10)% increased Damage taken to Enemies
+]],[[
 Coralito's Signature
 Diamond Flask
 Requires Level 27
-Take 30 Chaos Damage per Second during Flask effect 
-25% chance to Poison on Hit during Flask effect 
-Your Critical Strikes do not deal extra Damage during Flask effect 
-(50–75)% increased Duration of Poisons you inflict during Flask effect 
-Grants Perfect Agony during Flask effect 
+Take 30 Chaos Damage per Second during Flask effect
+25% chance to Poison on Hit during Flask effect
+Your Critical Strikes do not deal extra Damage during Flask effect
+(50-75)% increased Duration of Poisons you inflict during Flask effect
+Grants Perfect Agony during Flask effect
 ]],[[
 Coruscating Elixir
 Ruby Flask
@@ -106,6 +116,31 @@ Implicits: 0
 Chaos Damage does not bypass Energy Shield during effect
 Removes all but one Life on use
 Removed life is regenerated as Energy Shield over 2 seconds
+]],[[
+Cinderswallow Urn
+Silver Flask
+League: Betrayal
+Source: Drops from unique{Catarina, Master of Undeath}
+Variant: Crit Chance
+Variant: Damage Taken is Leeched as Life
+Variant: Item Rarity
+Variant: Reduced Mana Cost
+Variant: Movement Speed/Stun Avoidance
+Variant: Life Regen
+Requires Level 22
+Implicits: 0
+Recharges 1 Charge when you consume an Ignited Corpse
+Enemies Ignited by you during Flask Effect take 10% increased Damage
+Recover (1-3)% of Life when you Kill an Enemy during Flask Effect
+Recover (1-3)% of Mana when you Kill an Enemy during Flask Effect
+Recover (1-3)% of Energy Shield when you Kill an Enemy during Flask Effect
+{variant:1}{crafted}(60-80)% increased Critical Strike Chance during Flask Effect
+{variant:2}{crafted}15% of Damage Taken from Hits is Leeched as Life during Flask Effect
+{variant:3}{crafted}(20-30)% increased Rarity of Items found during Flask Effect
+{variant:4}{crafted}(25-20)% reduced Mana Cost of Skills during Flask Effect
+{variant:5}{crafted}(8-12)% increased Movement Speed during Flask effect
+{variant:5}{crafted}50% Chance to avoid being Stunned during Flask Effect
+{variant:6}{crafted}3% of Life Regenerated per second during Flask Effect
 ]],[[
 Dying Sun
 Ruby Flask
@@ -242,11 +277,14 @@ Gains no Charges during Effect of any Overflowing Chalice Flask
 ]],[[
 The Sorrow of the Divine
 Sulphur Flask
+League: Legion
+Source: Drops from normal{Templar} legion
 Requires Level 35
 Implicits: 1
 Creates Consecrated Ground on Use
 (25-50)% increased Duration
 Zealot's Oath during Flask effect
+Life Recovery from Flasks also applies to Energy Shield during Flask Effect
 ]],[[
 Vessel of Vinktar
 Topaz Flask
@@ -289,7 +327,7 @@ During Flask Effect, 10% reduced Damage taken of each Element for which your Unc
 Elemental Resistance is lowest
 {variant:1}During Flask Effect, Damage Penetrates 20% Resistance of each Element for which your
 Uncapped Elemental Resistance is highest
-{variant:2}During Flask Effect, Damage Penetrates (10-15)% Resistance of each Element for which your 
+{variant:2}During Flask Effect, Damage Penetrates (10-15)% Resistance of each Element for which your
 Uncapped Elemental Resistance is highest
 ]],[[
 Witchfire Brew

@@ -6,6 +6,12 @@
 local ipairs = ipairs
 local t_insert = table.insert
 
+local realmList = {
+	{ label = "PC", id = "PC", realmCode = "pc", profileURL = "https://www.pathofexile.com/account/view-profile/" },
+	{ label = "Xbox", id = "XBOX", realmCode = "xbox", profileURL = "https://www.pathofexile.com/account/xbox/view-profile/" },
+	{ label = "PS4", id = "SONY", realmCode = "sony", profileURL = "https://www.pathofexile.com/account/sony/view-profile/" },
+}
+
 local ImportTabClass = newClass("ImportTab", "ControlHost", "Control", function(self, build)
 	self.ControlHost()
 	self.Control()
@@ -38,7 +44,9 @@ If possible, change the game version in the Configuration tab before importing.]
 	self.controls.accountNameHeader.shown = function()
 		return self.charImportMode == "GETACCOUNTNAME"
 	end
-	self.controls.accountName = new("EditControl", {"TOPLEFT",self.controls.accountNameHeader,"BOTTOMLEFT"}, 0, 4, 200, 20, main.lastAccountName or "", nil, "%c")
+	self.controls.accountRealm = new("DropDownControl", {"TOPLEFT",self.controls.accountNameHeader,"BOTTOMLEFT"}, 0, 4, 60, 20, realmList )
+	self.controls.accountRealm:SelByValue( main.lastRealm or "PC", "id" )
+	self.controls.accountName = new("EditControl", {"LEFT",self.controls.accountRealm,"RIGHT"}, 8, 0, 200, 20, main.lastAccountName or "", nil, "%c")
 	self.controls.accountName.pasteFilter = function(text)
 		return text:gsub("[\128-\255]",function(c)
 			return codePointToUTF8(c:byte(1)):gsub(".",function(c)
@@ -53,7 +61,7 @@ If possible, change the game version in the Configuration tab before importing.]
 	self.controls.accountNameGo.enabled = function()
 		return self.controls.accountName.buf:match("%S")
 	end
-	self.controls.accountNameUnicode = new("LabelControl", {"TOPLEFT",self.controls.accountName,"BOTTOMLEFT"}, 0, 16, 0, 14, "^7Note: if the account name contains non-ASCII characters then it must be URL encoded first.")
+	self.controls.accountNameUnicode = new("LabelControl", {"TOPLEFT",self.controls.accountRealm,"BOTTOMLEFT"}, 0, 16, 0, 14, "^7Note: if the account name contains non-ASCII characters then it must be URL encoded first.")
 	self.controls.accountNameURLEncoder = new("ButtonControl", {"TOPLEFT",self.controls.accountNameUnicode,"BOTTOMLEFT"}, 0, 4, 170, 18, "^x4040FFhttps://www.urlencoder.org/", function()
 		OpenURL("https://www.urlencoder.org/")
 	end)
@@ -243,6 +251,8 @@ You can get this from your web browser's cookies while logged into the Path of E
 end)
 
 function ImportTabClass:Load(xml, fileName)
+	self.lastRealm = xml.attrib.lastRealm
+	self.controls.accountRealm:SelByValue( self.lastRealm or main.lastRealm or "PC", "id" )
 	self.lastAccountHash = xml.attrib.lastAccountHash
 	if self.lastAccountHash then
 		for accountName in pairs(main.gameAccounts) do
@@ -256,6 +266,7 @@ end
 
 function ImportTabClass:Save(xml)
 	xml.attrib = {
+		lastRealm = self.lastRealm,
 		lastAccountHash = self.lastAccountHash,
 		lastCharacterHash = self.lastCharacterHash,
 	}
@@ -278,8 +289,9 @@ function ImportTabClass:DownloadCharacterList()
 	self.charImportMode = "DOWNLOADCHARLIST"
 	self.charImportStatus = "Retrieving character list..."
 	local accountName = self.controls.accountName.buf
+	local realm = realmList[self.controls.accountRealm.selIndex]
 	local sessionID = #self.controls.sessionInput.buf == 32 and self.controls.sessionInput.buf or (main.gameAccounts[accountName] and main.gameAccounts[accountName].sessionID)
-	launch:DownloadPage("https://www.pathofexile.com/character-window/get-characters?accountName="..accountName, function(page, errMsg)
+	launch:DownloadPage("https://www.pathofexile.com/character-window/get-characters?accountName="..accountName.."&realm="..realm.realmCode, function(page, errMsg)
 		if errMsg == "Response code: 403" then
 			self.charImportStatus = colorCodes.NEGATIVE.."Account profile is private."
 			self.charImportMode = "GETSESSIONID"
@@ -307,13 +319,13 @@ function ImportTabClass:DownloadCharacterList()
 		end
 		-- GGG's character API has an issue where for /get-characters the account name is not case-sensitive, but for /get-passive-skills and /get-items it is.
 		-- This workaround grabs the profile page and extracts the correct account name from one of the URLs.
-		launch:DownloadPage("https://www.pathofexile.com/account/view-profile/"..accountName, function(page, errMsg)
+		launch:DownloadPage(realm.profileURL..accountName, function(page, errMsg)
 			if errMsg then
 				self.charImportStatus = colorCodes.NEGATIVE.."Error retrieving character list, try again ("..errMsg:gsub("\n"," ")..")"
 				self.charImportMode = "GETACCOUNTNAME"
 				return
 			end
-			local realAccountName = page:match("/account/view%-profile/([^/]+)/characters"):gsub(".", function(c) if c:byte(1) > 127 then return string.format("%%%2X",c:byte(1)) else return c end end)
+			local realAccountName = page:match("/view%-profile/([^/]+)/characters"):gsub(".", function(c) if c:byte(1) > 127 then return string.format("%%%2X",c:byte(1)) else return c end end)
 			if not realAccountName then
 				self.charImportStatus = colorCodes.NEGATIVE.."Failed to retrieve character list."
 				self.charImportMode = "GETSESSIONID"
@@ -323,6 +335,8 @@ function ImportTabClass:DownloadCharacterList()
 			accountName = realAccountName
 			self.charImportStatus = "Character list successfully retrieved."
 			self.charImportMode = "SELECTCHAR"
+			self.lastRealm = realm.id
+			main.lastRealm = realm.id
 			self.lastAccountHash = common.sha1(accountName)
 			main.lastAccountName = accountName
 			main.gameAccounts[accountName] = main.gameAccounts[accountName] or { }
@@ -377,11 +391,12 @@ end
 function ImportTabClass:DownloadPassiveTree()
 	self.charImportMode = "IMPORTING"
 	self.charImportStatus = "Retrieving character passive tree..."
+	local realm = realmList[self.controls.accountRealm.selIndex]
 	local accountName = self.controls.accountName.buf
 	local sessionID = #self.controls.sessionInput.buf == 32 and self.controls.sessionInput.buf or (main.gameAccounts[accountName] and main.gameAccounts[accountName].sessionID)
 	local charSelect = self.controls.charSelect
 	local charData = charSelect.list[charSelect.selIndex].char
-	launch:DownloadPage("https://www.pathofexile.com/character-window/get-passive-skills?accountName="..accountName.."&character="..charData.name, function(page, errMsg)
+	launch:DownloadPage("https://www.pathofexile.com/character-window/get-passive-skills?accountName="..accountName.."&character="..charData.name.."&realm="..realm.realmCode, function(page, errMsg)
 		self.charImportMode = "SELECTCHAR"
 		if errMsg then
 			self.charImportStatus = colorCodes.NEGATIVE.."Error importing character data, try again ("..errMsg:gsub("\n"," ")..")"
@@ -398,11 +413,12 @@ end
 function ImportTabClass:DownloadItems()
 	self.charImportMode = "IMPORTING"
 	self.charImportStatus = "Retrieving character items..."
+	local realm = realmList[self.controls.accountRealm.selIndex]
 	local accountName = self.controls.accountName.buf
 	local sessionID = #self.controls.sessionInput.buf == 32 and self.controls.sessionInput.buf or (main.gameAccounts[accountName] and main.gameAccounts[accountName].sessionID)
 	local charSelect = self.controls.charSelect
 	local charData = charSelect.list[charSelect.selIndex].char
-	launch:DownloadPage("https://www.pathofexile.com/character-window/get-items?accountName="..accountName.."&character="..charData.name, function(page, errMsg)
+	launch:DownloadPage("https://www.pathofexile.com/character-window/get-items?accountName="..accountName.."&character="..charData.name.."&realm="..realm.realmCode, function(page, errMsg)
 		self.charImportMode = "SELECTCHAR"
 		if errMsg then
 			self.charImportStatus = colorCodes.NEGATIVE.."Error importing character data, try again ("..errMsg:gsub("\n"," ")..")"
@@ -434,12 +450,8 @@ function ImportTabClass:ImportPassiveTreeAndJewels(json, charData)
 			end
 		end
 	end
-	local sockets = { }
-	for i, slot in pairs(charPassiveData.jewel_slots) do
-		sockets[i] = tonumber(type(slot) == "number" and slot or slot.passiveSkill.hash)
-	end
 	for _, itemData in pairs(charPassiveData.items) do
-		self:ImportItem(itemData, sockets)
+		self:ImportItem(itemData)
 	end
 	self.build.itemsTab:PopulateSlots()
 	self.build.itemsTab:AddUndoState()
@@ -532,10 +544,10 @@ end
 local rarityMap = { [0] = "NORMAL", "MAGIC", "RARE", "UNIQUE", [9] = "RELIC" }
 local slotMap = { ["Weapon"] = "Weapon 1", ["Offhand"] = "Weapon 2", ["Weapon2"] = "Weapon 1 Swap", ["Offhand2"] = "Weapon 2 Swap", ["Helm"] = "Helmet", ["BodyArmour"] = "Body Armour", ["Gloves"] = "Gloves", ["Boots"] = "Boots", ["Amulet"] = "Amulet", ["Ring"] = "Ring 1", ["Ring2"] = "Ring 2", ["Belt"] = "Belt" }
 
-function ImportTabClass:ImportItem(itemData, sockets, slotName)
+function ImportTabClass:ImportItem(itemData, slotName)
 	if not slotName then
-		if itemData.inventoryId == "PassiveJewels" and sockets then
-			slotName = "Jewel "..sockets[itemData.x + 1]
+		if itemData.inventoryId == "PassiveJewels" then
+			slotName = "Jewel "..self.build.latestTree.jewelSlots[itemData.x + 1]
 		elseif itemData.inventoryId == "Flask" then
 			slotName = "Flask "..(itemData.x + 1)
 		else
@@ -553,7 +565,7 @@ function ImportTabClass:ImportItem(itemData, sockets, slotName)
 	item.rarity = rarityMap[itemData.frameType]
 	if #itemData.name > 0 then
 		item.title = itemLib.sanitiseItemText(itemData.name)
-		item.baseName = itemLib.sanitiseItemText(itemData.typeLine)
+		item.baseName = itemLib.sanitiseItemText(itemData.typeLine):gsub("Synthesised ","")
 		item.name = item.title .. ", " .. item.baseName
 		if item.baseName == "Two-Toned Boots" then
 			-- Hack for Two-Toned Boots
@@ -631,9 +643,9 @@ function ImportTabClass:ImportItem(itemData, sockets, slotName)
 			end
 		end
 	end
-	if itemData.corrupted then
-		item.corrupted = true
-	end
+	item.corrupted = itemData.corrupted
+	item.fractured = itemData.fractured
+	item.synthesised = itemData.synthesised
 	if itemData.sockets and itemData.sockets[1] then
 		item.sockets = { }
 		for i, socket in pairs(itemData.sockets) do
@@ -652,29 +664,38 @@ function ImportTabClass:ImportItem(itemData, sockets, slotName)
 			end
 		end
 	end
-	item.modLines = { }
-	item.implicitLines = 0
-	if itemData.implicitMods then
-		item.implicitLines = item.implicitLines + #itemData.implicitMods
-		for _, line in ipairs(itemData.implicitMods) do
-			line = line:gsub("\n"," ")
-			local modList, extra = modLib.parseMod[self.build.targetVersion](line)
-			t_insert(item.modLines, { line = line, extra = extra, mods = modList or { } })
+	item.enchantModLines = { }
+	item.implicitModLines = { }
+	item.explicitModLines = { }
+	if itemData.enchantMods then
+		for _, line in ipairs(itemData.enchantMods) do
+			for line in line:gmatch("[^\n]+") do
+				local modList, extra = modLib.parseMod[self.build.targetVersion](line)
+				t_insert(item.enchantModLines, { line = line, extra = extra, mods = modList or { }, crafted = true })
+			end
 		end
 	end
-	if itemData.enchantMods then
-		item.implicitLines = item.implicitLines + #itemData.enchantMods
-		for _, line in ipairs(itemData.enchantMods) do
-			line = line:gsub("\n"," ")
-			local modList, extra = modLib.parseMod[self.build.targetVersion](line)
-			t_insert(item.modLines, { line = line, extra = extra, mods = modList or { }, crafted = true })
+	if itemData.implicitMods then
+		for _, line in ipairs(itemData.implicitMods) do
+			for line in line:gmatch("[^\n]+") do
+				local modList, extra = modLib.parseMod[self.build.targetVersion](line)
+				t_insert(item.implicitModLines, { line = line, extra = extra, mods = modList or { } })
+			end
+		end
+	end
+	if itemData.fracturedMods then
+		for _, line in ipairs(itemData.fracturedMods) do
+			for line in line:gmatch("[^\n]+") do
+				local modList, extra = modLib.parseMod[self.build.targetVersion](line)
+				t_insert(item.explicitModLines, { line = line, extra = extra, mods = modList or { }, fractured = true })
+			end
 		end
 	end
 	if itemData.explicitMods then
 		for _, line in ipairs(itemData.explicitMods) do
 			for line in line:gmatch("[^\n]+") do
 				local modList, extra = modLib.parseMod[self.build.targetVersion](line)
-				t_insert(item.modLines, { line = line, extra = extra, mods = modList or { } })
+				t_insert(item.explicitModLines, { line = line, extra = extra, mods = modList or { } })
 			end
 		end
 	end
@@ -682,7 +703,7 @@ function ImportTabClass:ImportItem(itemData, sockets, slotName)
 		for _, line in ipairs(itemData.craftedMods) do
 			for line in line:gmatch("[^\n]+") do
 				local modList, extra = modLib.parseMod[self.build.targetVersion](line)
-				t_insert(item.modLines, { line = line, extra = extra, mods = modList or { }, crafted = true })
+				t_insert(item.explicitModLines, { line = line, extra = extra, mods = modList or { }, crafted = true })
 			end
 		end
 	end
@@ -717,29 +738,37 @@ function ImportTabClass:ImportSocketedItems(item, socketedItems, slotName)
 	local abyssalSocketId = 1
 	for _, socketedItem in ipairs(socketedItems) do
 		if socketedItem.abyssJewel then
-			self:ImportItem(socketedItem, nil, slotName .. " Abyssal Socket "..abyssalSocketId)
+			self:ImportItem(socketedItem, slotName .. " Abyssal Socket "..abyssalSocketId)
 			abyssalSocketId = abyssalSocketId + 1
 		else
-			local gemInstance = { level = 20, quality = 0, enabled = true, enableGlobal1 = true }
-			gemInstance.nameSpec = socketedItem.typeLine:gsub(" Support","")
-			gemInstance.support = socketedItem.support
-			for _, property in pairs(socketedItem.properties) do
-				if property.name == "Level" then
-					gemInstance.level = tonumber(property.values[1][1]:match("%d+"))
-				elseif property.name == "Quality" then
-					gemInstance.quality = tonumber(property.values[1][1]:match("%d+"))
+			local gemId = self.build.data.gemForBaseName[socketedItem.typeLine] 
+			if not gemId and socketedItem.hybrid then
+				-- Dual skill gems (currently just Stormbind) show the second skill as the typeLine, which won't match the actual gem
+				-- Luckily the primary skill name is also there, so we can find the gem using that
+				gemId = self.build.data.gemForBaseName[socketedItem.hybrid.baseTypeName]
+			end
+			if gemId then
+				local gemInstance = { level = 20, quality = 0, enabled = true, enableGlobal1 = true, gemId = gemId }
+				gemInstance.nameSpec = self.build.data.gems[gemId].name
+				gemInstance.support = socketedItem.support
+				for _, property in pairs(socketedItem.properties) do
+					if property.name == "Level" then
+						gemInstance.level = tonumber(property.values[1][1]:match("%d+"))
+					elseif property.name == "Quality" then
+						gemInstance.quality = tonumber(property.values[1][1]:match("%d+"))
+					end
 				end
-			end
-			local groupID = item.sockets[socketedItem.socket + 1].group
-			if not itemSocketGroupList[groupID] then
-				itemSocketGroupList[groupID] = { label = "", enabled = true, gemList = { }, slot = slotName }
-			end
-			local socketGroup = itemSocketGroupList[groupID]
-			if not socketedItem.support and socketGroup.gemList[1] and socketGroup.gemList[1].support then
-				-- If the first gemInstance is a support gemInstance, put the first active gemInstance before it
-				t_insert(socketGroup.gemList, 1, gemInstance)
-			else
-				t_insert(socketGroup.gemList, gemInstance)
+				local groupID = item.sockets[socketedItem.socket + 1].group
+				if not itemSocketGroupList[groupID] then
+					itemSocketGroupList[groupID] = { label = "", enabled = true, gemList = { }, slot = slotName }
+				end
+				local socketGroup = itemSocketGroupList[groupID]
+				if not socketedItem.support and socketGroup.gemList[1] and socketGroup.gemList[1].support then
+					-- If the first gemInstance is a support gemInstance, put the first active gemInstance before it
+					t_insert(socketGroup.gemList, 1, gemInstance)
+				else
+					t_insert(socketGroup.gemList, gemInstance)
+				end
 			end
 		end
 	end

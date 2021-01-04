@@ -96,20 +96,20 @@ for i = 1, 70 do
 end
 
 data.weaponTypeInfo = {
-	["None"] = { oneHand = true, melee = true, flag = "Unarmed", range = 4 },
+	["None"] = { oneHand = true, melee = true, flag = "Unarmed" },
 	["Bow"] = { oneHand = false, melee = false, flag = "Bow" },
-	["Claw"] = { oneHand = true, melee = true, flag = "Claw", range = 9 },
-	["Dagger"] = { oneHand = true, melee = true, flag = "Dagger", range = 8 },
-	["Staff"] = { oneHand = false, melee = true, flag = "Staff", range = 11 },
+	["Claw"] = { oneHand = true, melee = true, flag = "Claw" },
+	["Dagger"] = { oneHand = true, melee = true, flag = "Dagger" },
+	["Staff"] = { oneHand = false, melee = true, flag = "Staff" },
 	["Wand"] = { oneHand = true, melee = false, flag = "Wand" },
-	["One Handed Axe"] = { oneHand = true, melee = true, flag = "Axe", range = 9 },
-	["One Handed Mace"] = { oneHand = true, melee = true, flag = "Mace", range = 9 },
-	["One Handed Sword"] = { oneHand = true, melee = true, flag = "Sword", range = 9 },
-	["Sceptre"] = { oneHand = true, melee = true, flag = "Mace", range = 9, label = "One Handed Mace" },
-	["Thrusting One Handed Sword"] = { oneHand = true, melee = true, flag = "Sword", range = 12, label = "One Handed Sword" },
-	["Two Handed Axe"] = { oneHand = false, melee = true, flag = "Axe", range = 11 },
-	["Two Handed Mace"] = { oneHand = false, melee = true, flag = "Mace", range = 11 },
-	["Two Handed Sword"] = { oneHand = false, melee = true, flag = "Sword", range = 11 },
+	["One Handed Axe"] = { oneHand = true, melee = true, flag = "Axe" },
+	["One Handed Mace"] = { oneHand = true, melee = true, flag = "Mace" },
+	["One Handed Sword"] = { oneHand = true, melee = true, flag = "Sword" },
+	["Sceptre"] = { oneHand = true, melee = true, flag = "Mace", label = "One Handed Mace" },
+	["Thrusting One Handed Sword"] = { oneHand = true, melee = true, flag = "Sword", label = "One Handed Sword" },
+	["Two Handed Axe"] = { oneHand = false, melee = true, flag = "Axe" },
+	["Two Handed Mace"] = { oneHand = false, melee = true, flag = "Mace" },
+	["Two Handed Sword"] = { oneHand = false, melee = true, flag = "Sword" },
 }
 data.unarmedWeaponData = {
 	[0] = { type = "None", AttackRate = 1.2, CritChance = 0, PhysicalMin = 2, PhysicalMax = 6 }, -- Scion
@@ -146,13 +146,6 @@ data.specialBaseTags = {
 	["Sceptre"] = { shaper = "sceptre_shaper", elder = "sceptre_elder", },
 }
 
--- Uniques
-data.uniques = { }
-for _, type in pairs(itemTypes) do
-	data.uniques[type] = LoadModule("Data/Uniques/"..type)
-end
-LoadModule("Data/New")
-
 ---------------------------
 -- Version-specific Data --
 ---------------------------
@@ -178,6 +171,7 @@ for _, targetVersion in ipairs(targetVersionList) do
 		Flask = dataModule("ModFlask"),
 		Jewel = dataModule("ModJewel"),
 		JewelAbyss = targetVersion ~= "2_6" and dataModule("ModJewelAbyss") or { },
+		JewelCluster = targetVersion ~= "2_6" and dataModule("ModJewelCluster") or { },
 	}
 	verData.masterMods = dataModule("ModMaster")
 	verData.enchantments = {
@@ -186,6 +180,11 @@ for _, targetVersion in ipairs(targetVersionList) do
 		Gloves = dataModule("EnchantmentGloves"),
 	}
 	verData.essences = dataModule("Essence")
+
+	-- Cluster jewel data
+	if targetVersion ~= "2_6" then	
+		verData.clusterJewels = dataModule("ClusterJewels")
+	end
 
 	-- Load skills
 	verData.skills = { }
@@ -234,16 +233,18 @@ for _, targetVersion in ipairs(targetVersionList) do
 	-- Load gems
 	verData.gems = dataModule("Gems")
 	verData.gemForSkill = { }
+	verData.gemForBaseName = { }
 	for gemId, gem in pairs(verData.gems) do
 		gem.id = gemId
 		gem.grantedEffect = verData.skills[gem.grantedEffectId]
 		verData.gemForSkill[gem.grantedEffect] = gemId
+		verData.gemForBaseName[gem.name .. (gem.grantedEffect.support and " Support" or "")] = gemId
 		gem.secondaryGrantedEffect = gem.secondaryGrantedEffectId and verData.skills[gem.secondaryGrantedEffectId]
 		gem.grantedEffectList = {
 			gem.grantedEffect,
 			gem.secondaryGrantedEffect
 		}
-		gem.defaultLevel = (gem.grantedEffect.levels[20] and 20) or (gem.grantedEffect.levels[3][1] and 3) or 1
+		gem.defaultLevel = gem.defaultLevel or (#gem.grantedEffect.levels > 20 and #gem.grantedEffect.levels - 20) or (gem.grantedEffect.levels[3][1] and 3) or 1
 	end
 
 	-- Load minions
@@ -310,3 +311,10 @@ for _, targetVersion in ipairs(targetVersionList) do
 	-- Rare templates
 	verData.rares = dataModule("Rares")
 end
+
+-- Uniques (loaded after version-specific data because reasons)
+data.uniques = { }
+for _, type in pairs(itemTypes) do
+	data.uniques[type] = LoadModule("Data/Uniques/"..type)
+end
+LoadModule("Data/New")

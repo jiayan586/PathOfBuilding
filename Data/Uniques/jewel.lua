@@ -13,7 +13,6 @@ The Anima Stone
 Prismatic Jewel
 Source: Vendor Recipe
 Limited to: 1
-Implicits: 0
 Can Summon up to 1 additional Golem at a time
 +1 to maximum number of Summoned Golems if you have 3 Primordial Items Socketed or Equipped
 ]],[[
@@ -148,7 +147,6 @@ Crimson Jewel
 From Dust
 Cobalt Jewel
 Limited to: 1
-Implicits: 0
 Summon 2 additional Skeleton Warriors with Summon Skeleton
 +1 second to Summon Skeleton Cooldown
 ]],[[
@@ -217,6 +215,7 @@ Variant: Current
 ]],[[
 Healthy Mind
 Cobalt Jewel
+Limited to: 1
 Radius: Large
 (15-20)% increased maximum Mana
 Increases and Reductions to Life in Radius are Transformed to apply to Mana at 200% of their value
@@ -224,7 +223,7 @@ Increases and Reductions to Life in Radius are Transformed to apply to Mana at 2
 Hidden Potential
 Viridian Jewel
 Limited to: 1
-(20-25)% increased Damage for each Equipped Magic Item
+(20-25)% increased Damage for each Magic Item Equipped
 ]],[[
 Hotfooted
 Viridian Jewel
@@ -240,14 +239,12 @@ Dexterity from Passives in Radius is Transformed to Strength
 Inspired Learning
 Crimson Jewel
 Radius: Small
-Implicits: 0
 If 4 Notables are Allocated in Radius, When you Kill a Rare monster, you gain 1
 of its mods for 20 seconds
 ]],[[
 Intuitive Leap
 Viridian Jewel
 Radius: Small
-Implicits: 0
 Passives in Radius can be Allocated without being connected to your tree
 ]],[[
 Izaro's Turmoil
@@ -291,7 +288,6 @@ Notable Passive Skills in Radius grant nothing
 ]],[[
 Primordial Eminence
 Viridian Jewel
-Implicits: 0
 Golems have (16-20)% increased Attack and Cast Speed
 30% increased Effect of Buffs granted by your Golems
 Golems have +(800-1000) to Armour
@@ -301,7 +297,6 @@ Primordial Harmony
 Cobalt Jewel
 Variant: Pre 3.3.0
 Variant: Current
-Implicits: 0
 Golem Skills have (20-30)% increased Cooldown Recovery Speed
 {variant:1}Golems have (10-15)% increased Cooldown Recovery Speed
 {variant:2}Golems have (30-45)% increased Cooldown Recovery Speed
@@ -311,7 +306,6 @@ Primordial
 ]],[[
 Primordial Might
 Crimson Jewel
-Implicits: 0
 (25-30)% increased Damage if you Summoned a Golem in the past 8 seconds
 Golems Summoned in the past 8 seconds deal (35-45)% increased Damage
 Golems have (18-22)% increased Maximum Life
@@ -328,7 +322,6 @@ Radius: Large
 Pure Talent
 Viridian Jewel
 Limited to: 1
-Implicits: 0
 While your Passive Skill Tree connects to a class' Starting location, you gain:
 Marauder: Melee Skills have 15% increased Area of Effect
 Duelist: 1% of Attack Damage Leeched as Life
@@ -404,37 +397,49 @@ Crimson Jewel
 League: Incursion
 Source: Drops from unique{The Vaal Omnitect}
 Upgrade: Upgrades to unique{Transcendent Flesh} via currency{Vial of Transcendence}
+Variant: Pre 3.8.0
+Variant: Current
 Radius: Medium
 -1 Strength per 1 Strength on Allocated Passives in Radius
-+5% to Critical Strike Multiplier per 10 Strength on Unallocated Passives in Radius
+{variant:1}+5% to Critical Strike Multiplier per 10 Strength on Unallocated Passives in Radius
+{variant:2}+7% to Critical Strike Multiplier per 10 Strength on Unallocated Passives in Radius
 ]],[[
 Transcendent Flesh
 Crimson Jewel
 League: Incursion
 Source: Upgraded from unique{Tempered Flesh} via currency{Vial of Transcendence}
+Variant: Pre 3.8.0
+Variant: Current
 Radius: Medium
 -1 Strength per 1 Strength on Allocated Passives in Radius
 1% additional Physical Damage Reduction per 10 Strength on Allocated Passives in Radius
-+5% to Critical Strike Multiplier per 10 Strength on Unallocated Passives in Radius
+{variant:1}+5% to Critical Strike Multiplier per 10 Strength on Unallocated Passives in Radius
+{variant:2}+7% to Critical Strike Multiplier per 10 Strength on Unallocated Passives in Radius
 ]],[[
 Tempered Mind
 Cobalt Jewel
 League: Incursion
 Source: Drops from unique{The Vaal Omnitect}
 Upgrade: Upgrades to unique{Transcendent Mind} via currency{Vial of Transcendence}
+Variant: Pre 3.8.0
+Variant: Current
 Radius: Medium
 -1 Intelligence per 1 Intelligence on Allocated Passives in Radius
-+100 to Accuracy Rating per 10 Intelligence on Unallocated Passives in Radius
+{variant:1}+100 to Accuracy Rating per 10 Intelligence on Unallocated Passives in Radius
+{variant:2}+125 to Accuracy Rating per 10 Intelligence on Unallocated Passives in Radius
 ]],[[
 Transcendent Mind
 Cobalt Jewel
 League: Incursion
 Source: Upgraded from unique{Tempered Mind} via currency{Vial of Transcendence}
+Variant: Pre 3.8.0
+Variant: Current
 Radius: Medium
 -1 Intelligence per 1 Intelligence on Allocated Passives in Radius
 0.4% of Energy Shield Regenerated per Second for
 every 10 Intelligence on Allocated Passives in Radius
-+100 to Accuracy Rating per 10 Intelligence on Unallocated Passives in Radius
+{variant:1}+100 to Accuracy Rating per 10 Intelligence on Unallocated Passives in Radius
+{variant:2}+125 to Accuracy Rating per 10 Intelligence on Unallocated Passives in Radius
 ]],[[
 Tempered Spirit
 Viridian Jewel
@@ -594,24 +599,24 @@ Crimson Jewel
 Limited to: 2
 Radius: Medium
 Elemental Hit deals (10–15)% increased Damage
-With 40 total Strength and Intelligence in Radius, Elemental Hit cannot choose Cold
-With 40 total Strength and Intelligence in Radius, Elemental Hit deals 50% less Cold Damage
+With 40 total Strength and Intelligence in Radius, Elemental Hit and Wild Strike cannot choose Cold
+With 40 total Strength and Intelligence in Radius, Elemental Hit and Wild Strike deal 50% less Cold Damage
 ]],[[
 Combat Focus
 Cobalt Jewel
 Limited to: 2
 Radius: Medium
 Elemental Hit deals (10–15)% increased Damage
-With 40 total Intelligence and Dexterity in Radius, Elemental Hit cannot choose Fire
-With 40 total Intelligence and Dexterity in Radius, Elemental Hit deals 50% less Fire Damage
+With 40 total Intelligence and Dexterity in Radius, Elemental Hit and Wild Strike cannot choose Fire
+With 40 total Intelligence and Dexterity in Radius, Elemental Hit and Wild Strike deal 50% less Fire Damage
 ]],[[
 Combat Focus
 Viridian Jewel
 Limited to: 2
 Radius: Medium
 Elemental Hit deals (10–15)% increased Damage
-With 40 total Dexterity and Strength in Radius, Elemental Hit cannot choose Lightning
-With 40 total Dexterity and Strength in Radius, Elemental Hit deals 50% less Lightning Damage
+With 40 total Dexterity and Strength in Radius, Elemental Hit and Wild Strike cannot choose Lightning
+With 40 total Dexterity and Strength in Radius, Elemental Hit and Wild Strike deal 50% less Lightning Damage
 ]],[[
 Collateral Damage
 Viridian Jewel
@@ -631,6 +636,14 @@ Radius: Medium
 Minions have +(7-10)% to all Elemental Resistances
 {variant:1}With at least 40 Intelligence in Radius, can summon up to 3 Skeleton Mages with Summon Skeletons
 {variant:2}With at least 40 Intelligence in Radius, can summon up to 5 Skeleton Mages with Summon Skeletons
+]],[[
+Divide and Conquer
+Viridian Jewel
+Radius: Medium
+(10–15)% increased Attack Damage while holding a Shield
+With 40 total Dexterity and Strength in Radius, Spectral Shield Throw Chains +4 times
+With 40 total Dexterity and Strength in Radius, Spectral Shield Throw fires Shard Projectiles when Chaining
+With 40 total Dexterity and Strength in Radius, Spectral Shield Throw fires 75% less Shard Projectiles
 ]],[[
 Fight for Survival
 Viridian Jewel
@@ -724,12 +737,11 @@ With at least 40 Dexterity in Radius, Ice Shot has 25% increased Area of Effect
 ]],[[
 Overwhelming Odds
 Crimson Jewel
-Limited to: 2
+Limited to: 1
 Radius: Medium
-(10-15)% increased Physical Damage
+(10-15)% increased Global Physical Damage
 With at least 40 Strength in Radius, Cleave grants Fortify on Hit
-With at least 40 Strength in Radius, Cleave has 3% increased Area of
-Effect per Nearby Enemy
+With at least 40 Strength in Radius, Cleave has +1 to Radius per Nearby Enemy, up to +10
 ]],[[
 Pitch Darkness
 Viridian Jewel
@@ -850,10 +862,13 @@ Attack deals 30% increased Damage
 ]],[[
 Volley Fire
 Viridian Jewel
-Limited to: 3
+Variant: Pre 3.9.0
+Variant: Current
+Limited to: 1
 Radius: Medium
 (6-10)% increased Projectile Damage
-With at least 40 Dexterity in Radius, Barrage fires an additional 2 projectiles simultaneously on the first and final attacks
+{variant:1}With at least 40 Dexterity in Radius, Barrage fires an additional 2 projectiles simultaneously on the first and final attacks
+{variant:2}With at least 40 Dexterity in Radius, Barrage fires an additional 6 projectiles simultaneously on the first and final attacks
 ]],[[
 Weight of the Empire
 Crimson Jewel
@@ -952,14 +967,12 @@ Corrupted
 Hungry Abyss
 Viridian Jewel
 Limited to: 1
-Implicits: 0
 With 5 Corrupted Items Equipped: Life Leech recovers based on your Chaos Damage instead
 Corrupted
 ]],[[
 Mutated Growth
 Cobalt Jewel
 Limited to: 1
-Implicits: 0
 10% increased Experience Gain of Corrupted Gems
 Corrupted
 ]],[[

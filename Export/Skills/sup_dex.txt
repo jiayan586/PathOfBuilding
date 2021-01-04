@@ -8,7 +8,39 @@ local skills, mod, flag, skill = ...
 #skill SupportAddedColdDamage
 #mods
 
+#skill SupportAddedColdDamagePlus
+	statMap = {
+		["supported_cold_skill_gem_level_+"] = {
+			mod("SupportedGemProperty", "LIST", { keyword = "active_skill", key = "level", value = nil }, 0, 0, { type = "SkillType", skillType = SkillType.ColdSkill }),
+		},
+	},
+#mods
+
 #skill SupportAdditionalAccuracy
+#mods
+
+#skill SupportArrowNova
+	statMap = {
+		["support_rain_projectile_damage_+%_final"] = {
+			mod("Damage", "MORE", nil, ModFlag.Projectile),
+		},
+	},
+#mods
+
+#skill SupportArrowNovaPlus
+	statMap = {
+		["support_rain_projectile_damage_+%_final"] = {
+			mod("Damage", "MORE", nil, ModFlag.Projectile),
+		},
+	},
+#mods
+
+#skill SupportBarrage
+	statMap = {
+		["support_barrage_damage_+%_final"] = {
+			mod("Damage", "MORE", nil),
+		},
+	},
 #mods
 
 #skill SupportBlind
@@ -18,12 +50,27 @@ local skills, mod, flag, skill = ...
 #mods
 
 #skill SupportCastOnCrit
+#mods
+
+#skill SupportCastOnCritTriggered
 	statMap = {
 		["support_cast_on_crit_spell_damage_+%_final"] = {
 			mod("Damage", "MORE", nil, ModFlag.Spell),
 		},
 	},
-#baseMod skill("showAverage", true, { type = "SkillType", skillType = SkillType.TriggerableSpell })
+#baseMod skill("showAverage", true)
+#mods
+
+#skill SupportCastOnCritPlus
+#mods
+
+#skill SupportCastOnCritTriggeredPlus
+	statMap = {
+		["support_cast_on_crit_spell_damage_+%_final"] = {
+			mod("Damage", "MORE", nil, ModFlag.Spell),
+		},
+	},
+#baseMod skill("showAverage", true)
 #mods
 
 #skill SupportCastOnDeath
@@ -45,10 +92,21 @@ local skills, mod, flag, skill = ...
 	},
 #mods
 
+#skill SupportChainPlus
+	statMap = {
+		["support_chain_hit_damage_+%_final"] = {
+			mod("Damage", "MORE", nil, ModFlag.Hit),
+		},
+	},
+#mods
+
 #skill SupportChanceToFlee
 #mods
 
 #skill SupportGemFrenzyPowerOnTrapTrigger
+#mods
+
+#skill SupportSlashingWeapon
 #mods
 
 #skill SupportClusterTrap
@@ -62,10 +120,24 @@ local skills, mod, flag, skill = ...
 #skill SupportColdPenetration
 #mods
 
+#skill SupportColdPenetrationPlus
+#mods
+
 #skill SupportCullingStrike
 #mods
 
 #skill SupportDeadlyAilments
+	statMap = {
+		["support_better_ailments_hit_damage_+%_final"] = {
+			mod("Damage", "MORE", nil, ModFlag.Hit),
+		},
+		["support_better_ailments_ailment_damage_+%_final"] = {
+			mod("Damage", "MORE", nil, 0, bit.bor(KeywordFlag.Bleed, KeywordFlag.Poison, KeywordFlag.Ignite)),
+		},
+	},
+#mods
+
+#skill SupportDeadlyAilmentsPlus
 	statMap = {
 		["support_better_ailments_hit_damage_+%_final"] = {
 			mod("Damage", "MORE", nil, ModFlag.Hit),
@@ -98,9 +170,33 @@ local skills, mod, flag, skill = ...
 	},
 #mods
 
+#skill SupportForkPlus
+	statMap = {
+		["support_fork_projectile_damage_+%_final"] = {
+			mod("Damage", "MORE", nil, ModFlag.Projectile),
+		},
+	},
+#mods
+
 #skill SupportGreaterMultipleProjectiles
 	statMap = {
 		["support_multiple_projectile_damage_+%_final"] = {
+			mod("Damage", "MORE", nil, ModFlag.Projectile),
+		},
+	},
+#mods
+
+#skill SupportGreaterMultipleProjectilesPlus
+	statMap = {
+		["support_multiple_projectile_damage_+%_final"] = {
+			mod("Damage", "MORE", nil, ModFlag.Projectile),
+		},
+	},
+#mods
+
+#skill SupportGreaterVolley
+	statMap = {
+		["support_greater_volley_projectile_damage_+%_final"] = {
 			mod("Damage", "MORE", nil, ModFlag.Projectile),
 		},
 	},
@@ -113,6 +209,14 @@ local skills, mod, flag, skill = ...
 		},
 		["support_hypothermia_cold_damage_over_time_+%_final"] = {
 			mod("ColdDamage", "MORE", nil, 0, KeywordFlag.ColdDot),
+		},
+	},
+#mods
+
+#skill SupportImpale
+	statMap = {
+		["impale_support_physical_damage_+%_final"] = {
+			mod("PhysicalDamage", "MORE", nil),
 		},
 	},
 #mods
@@ -145,6 +249,9 @@ local skills, mod, flag, skill = ...
 	},
 #mods
 
+#skill SupportPuncturingWeapon
+#mods
+
 #skill SupportOnslaught
 #mods
 
@@ -172,12 +279,7 @@ local skills, mod, flag, skill = ...
 	},
 #mods
 
-#skill SupportRapidDecay
-	statMap = {
-		["support_rapid_decay_damage_over_time_+%_final"] = {
-			mod("Damage", "MORE", nil, ModFlag.Dot),
-		},
-	},
+#skill SupportAdditionalCooldown
 #mods
 
 #skill SupportSlowerProjectiles
@@ -191,6 +293,25 @@ local skills, mod, flag, skill = ...
 	},
 #mods
 
+#skill SupportRapidDecay
+	statMap = {
+		["support_rapid_decay_damage_over_time_+%_final"] = {
+			mod("Damage", "MORE", nil, ModFlag.Dot),
+		},
+	},
+#mods
+
+#skill SupportSwiftAfflictionPlus
+	statMap = {
+		["support_rapid_decay_damage_over_time_+%_final"] = {
+			mod("Damage", "MORE", nil, ModFlag.Dot),
+		},
+	},
+#mods
+
+#skill SupportAdditionalTrapMine
+#mods
+
 #skill SupportTrap
 	addFlags = {
 		trap = true,
@@ -198,12 +319,6 @@ local skills, mod, flag, skill = ...
 	statMap = {
 		["base_skill_show_average_damage_instead_of_dps"] = {
 			skill("showAverage", true, { type = "SkillType", skillType = SkillType.SkillCanTrap }),
-		},
-		["support_trap_damage_+%_final"] = {
-			mod("Damage", "MORE", nil, 0, KeywordFlag.Trap),
-		},
-		["support_trap_hit_damage_+%_final"] = {
-			mod("Damage", "MORE", nil, ModFlag.Hit, KeywordFlag.Trap),
 		},
 	},
 #mods
@@ -236,6 +351,23 @@ local skills, mod, flag, skill = ...
 	},
 #mods
 
+#skill SupportViciousProjectilesPlus
+	statMap = {
+		["support_projectile_attack_speed_+%_final"] = {
+			mod("Speed", "MORE", nil, bit.bor(ModFlag.Attack, ModFlag.Projectile)),
+		},
+		["support_projectile_attack_physical_damage_+%_final"] = {
+			mod("PhysicalDamage", "MORE", nil, bit.bor(ModFlag.Attack, ModFlag.Projectile)),
+		},
+		["support_phys_chaos_projectile_physical_damage_over_time_+%_final"] = {
+			mod("PhysicalDamage", "MORE", nil, 0, KeywordFlag.PhysicalDot),
+		},
+		["support_phys_chaos_projectile_chaos_damage_over_time_+%_final"] = {
+			mod("ChaosDamage", "MORE", nil, 0, KeywordFlag.ChaosDot),
+		},
+	},
+#mods
+
 #skill SupportDebilitate
 	statMap = {
 		["support_debilitate_poison_damage_+%_final"] = {
@@ -251,6 +383,14 @@ local skills, mod, flag, skill = ...
 #mods
 
 #skill SupportVoidManipulation
+	statMap = {
+		["support_void_manipulation_chaos_damage_+%_final"] = {
+			mod("ChaosDamage", "MORE", nil),
+		},
+	},
+#mods
+
+#skill SupportVoidManipulationPlus
 	statMap = {
 		["support_void_manipulation_chaos_damage_+%_final"] = {
 			mod("ChaosDamage", "MORE", nil),

@@ -146,6 +146,15 @@ function calcs.offence(env, actor, activeSkill)
 		return
 	end
 
+	local function runSkillFunc(name)
+		local func = activeSkill.activeEffect.grantedEffect[name]
+		if func then
+			func(activeSkill, output)
+		end
+	end
+
+	runSkillFunc("initialFunc")
+
 	-- Update skill data
 	for _, value in ipairs(skillModList:List(skillCfg, "SkillData")) do
 		if value.merge == "MAX" then
@@ -181,27 +190,37 @@ function calcs.offence(env, actor, activeSkill)
 			end
 		end
 	end
+	local spellConvPercent = 0
+	if skillData.spellDamageAppliesToAttackAtPercentValue then
+		spellConvPercent = m_max(spellConvPercent, skillData.spellDamageAppliesToAttackAtPercentValue)
+	end
+	if skillModList:Flag(nil, "SpellDamageAppliesToAttacksAt150Percent") then
+		spellConvPercent = m_max(spellConvPercent, 150)
+	end
 	if skillModList:Flag(nil, "SpellDamageAppliesToAttacks") then
-		-- Spell Damage conversion from Crown of Eyes
+		spellConvPercent = m_max(spellConvPercent, 100)
+	end
+	if spellConvPercent > 0 then
+		-- Spell Damage conversion
 		for i, value in ipairs(skillModList:Tabulate("INC", { flags = ModFlag.Spell }, "Damage")) do
 			local mod = value.mod
 			if band(mod.flags, ModFlag.Spell) ~= 0 then
-				skillModList:NewMod("Damage", "INC", mod.value, mod.source, bor(band(mod.flags, bnot(ModFlag.Spell)), ModFlag.Attack), mod.keywordFlags, unpack(mod))
+				skillModList:NewMod("Damage", "INC", mod.value * spellConvPercent / 100, mod.source, bor(band(mod.flags, bnot(ModFlag.Spell)), ModFlag.Attack), mod.keywordFlags, unpack(mod))
 			end
 		end
 	end
 	if skillModList:Flag(nil, "ClawDamageAppliesToUnarmed") then
 		-- Claw Damage conversion from Rigwald's Curse
-		for i, value in ipairs(skillModList:Tabulate("INC", { flags = ModFlag.Claw }, "PhysicalDamage")) do
+		for i, value in ipairs(skillModList:Tabulate("INC", { flags = ModFlag.Claw, keywordFlags = KeywordFlag.Hit }, "Damage")) do
 			local mod = value.mod
 			if band(mod.flags, ModFlag.Claw) ~= 0 then
-				skillModList:NewMod("PhysicalDamage", mod.type, mod.value, mod.source, bor(band(mod.flags, bnot(ModFlag.Claw)), ModFlag.Unarmed), mod.keywordFlags, unpack(mod))
+				skillModList:NewMod("Damage", mod.type, mod.value, mod.source, bor(band(mod.flags, bnot(ModFlag.Claw)), ModFlag.Unarmed), mod.keywordFlags, unpack(mod))
 			end
 		end
 	end
 	if skillModList:Flag(nil, "ClawAttackSpeedAppliesToUnarmed") then
 		-- Claw Attack Speed conversion from Rigwald's Curse
-		for i, value in ipairs(skillModList:Tabulate("INC", { flags = bor(ModFlag.Claw, ModFlag.Attack) }, "Speed")) do
+		for i, value in ipairs(skillModList:Tabulate("INC", { flags = bor(ModFlag.Claw, ModFlag.Attack, ModFlag.Hit) }, "Speed")) do
 			local mod = value.mod
 			if band(mod.flags, ModFlag.Claw) ~= 0 and band(mod.flags, ModFlag.Attack) ~= 0 then
 				skillModList:NewMod("Speed", mod.type, mod.value, mod.source, bor(band(mod.flags, bnot(ModFlag.Claw)), ModFlag.Unarmed), mod.keywordFlags, unpack(mod))
@@ -210,7 +229,7 @@ function calcs.offence(env, actor, activeSkill)
 	end
 	if skillModList:Flag(nil, "ClawCritChanceAppliesToUnarmed") then
 		-- Claw Crit Chance conversion from Rigwald's Curse
-		for i, value in ipairs(skillModList:Tabulate("INC", { flags = ModFlag.Claw }, "CritChance")) do
+		for i, value in ipairs(skillModList:Tabulate("INC", { flags = bor(ModFlag.Claw, ModFlag.Hit) }, "CritChance")) do
 			local mod = value.mod
 			if band(mod.flags, ModFlag.Claw) ~= 0 then
 				skillModList:NewMod("CritChance", mod.type, mod.value, mod.source, bor(band(mod.flags, bnot(ModFlag.Claw)), ModFlag.Unarmed), mod.keywordFlags, unpack(mod))
@@ -224,6 +243,20 @@ function calcs.offence(env, actor, activeSkill)
 			skillModList:NewMod("Accuracy", "INC", mod.value, mod.source, mod.flags, mod.keywordFlags, unpack(mod))
 		end
 	end
+	if skillModList:Flag(nil, "LightRadiusAppliesToAreaOfEffect") then
+		-- Light Radius conversion from Wreath of Phrecia
+		for i, value in ipairs(skillModList:Tabulate("INC",  { }, "LightRadius")) do
+			local mod = value.mod
+			skillModList:NewMod("AreaOfEffect", "INC", math.floor(mod.value / 2), mod.source, mod.flags, mod.keywordFlags, unpack(mod))
+		end
+	end
+	if skillModList:Flag(nil, "LightRadiusAppliesToDamage") then
+		-- Light Radius conversion from Wreath of Phrecia
+		for i, value in ipairs(skillModList:Tabulate("INC",  { }, "LightRadius")) do
+			local mod = value.mod
+			skillModList:NewMod("Damage", "INC", mod.value, mod.source, mod.flags, mod.keywordFlags, unpack(mod))
+		end
+	end
 	if skillModList:Flag(nil, "CastSpeedAppliesToTrapThrowingSpeed") then
 		-- Cast Speed conversion from Slavedriver's Hand
 		for i, value in ipairs(skillModList:Tabulate("INC", { flags = ModFlag.Cast }, "Speed")) do
@@ -233,8 +266,45 @@ function calcs.offence(env, actor, activeSkill)
 			end
 		end
 	end
+	if skillData.arrowSpeedAppliesToAreaOfEffect then
+		-- Arrow Speed conversion for Galvanic Arrow
+		for i, value in ipairs(skillModList:Tabulate("INC", { flags = ModFlag.Bow }, "ProjectileSpeed")) do
+			local mod = value.mod
+			skillModList:NewMod("AreaOfEffect", "INC", mod.value, mod.source, mod.flags, mod.keywordFlags, unpack(mod))
+		end
+	end
+	if skillModList:Flag(nil, "TransfigurationOfBody") then
+		skillModList:NewMod("Damage", "INC", m_floor(skillModList:Sum("INC", nil, "Life") * 0.3), "Transfiguration of Body", ModFlag.Attack)
+	end
+	if skillModList:Flag(nil, "TransfigurationOfMind") then
+		skillModList:NewMod("Damage", "INC", m_floor(skillModList:Sum("INC", nil, "Mana") * 0.3), "Transfiguration of Mind")
+	end
+	if skillModList:Flag(nil, "TransfigurationOfSoul") then
+		skillModList:NewMod("Damage", "INC", m_floor(skillModList:Sum("INC", nil, "EnergyShield") * 0.3), "Transfiguration of Soul", ModFlag.Spell)
+	end
+	if skillData.gainPercentBaseWandDamage then
+		local mult = skillData.gainPercentBaseWandDamage / 100
+		if actor.weaponData1.type == "Wand" and actor.weaponData2.type == "Wand" then
+			for _, damageType in ipairs(dmgTypeList) do
+				skillModList:NewMod(damageType.."Min", "BASE", ((actor.weaponData1[damageType.."Min"] or 0) + (actor.weaponData2[damageType.."Min"] or 0)) / 2 * mult, "Spellslinger")
+				skillModList:NewMod(damageType.."Max", "BASE", ((actor.weaponData1[damageType.."Max"] or 0) + (actor.weaponData2[damageType.."Max"] or 0)) / 2 * mult, "Spellslinger")
+			end
+		elseif actor.weaponData1.type == "Wand" then
+			for _, damageType in ipairs(dmgTypeList) do
+				skillModList:NewMod(damageType.."Min", "BASE", (actor.weaponData1[damageType.."Min"] or 0) * mult, "Spellslinger")
+				skillModList:NewMod(damageType.."Max", "BASE", (actor.weaponData1[damageType.."Max"] or 0) * mult, "Spellslinger")
+			end
+		elseif actor.weaponData2.type == "Wand" then
+			for _, damageType in ipairs(dmgTypeList) do
+				skillModList:NewMod(damageType.."Min", "BASE", (actor.weaponData2[damageType.."Min"] or 0) * mult, "Spellslinger")
+				skillModList:NewMod(damageType.."Max", "BASE", (actor.weaponData2[damageType.."Max"] or 0) * mult, "Spellslinger")
+			end
+		end
+	end
 
 	local isAttack = skillFlags.attack
+
+	runSkillFunc("preSkillTypeFunc")
 
 	-- Calculate skill type stats
 	if skillFlags.minion then
@@ -246,7 +316,7 @@ function calcs.offence(env, actor, activeSkill)
 		if skillModList:Flag(skillCfg, "CannotChain") then
 			output.ChainMaxString = "Cannot chain"
 		else
-			output.ChainMax = skillModList:Sum("BASE", skillCfg, "ChainCountMax")
+			output.ChainMax = skillModList:Sum("BASE", skillCfg, "ChainCountMax", not skillFlags.projectile and "BeamChainCountMax" or nil)
 			output.ChainMaxString = output.ChainMax
 			output.Chain = m_min(output.ChainMax, skillModList:Sum("BASE", skillCfg, "ChainCount"))
 			output.ChainRemaining = m_max(0, output.ChainMax - output.Chain)
@@ -254,12 +324,14 @@ function calcs.offence(env, actor, activeSkill)
 	end
 	if skillFlags.projectile then
 		if skillModList:Flag(nil, "PointBlank") then
-			skillModList:NewMod("Damage", "MORE", 50, "Point Blank", bor(ModFlag.Attack, ModFlag.Projectile), { type = "DistanceRamp", ramp = {{10,1},{35,0},{150,-1}} })
+			skillModList:NewMod("Damage", "MORE", 30, "Point Blank", bor(ModFlag.Attack, ModFlag.Projectile), { type = "DistanceRamp", ramp = {{10,1},{35,0},{150,-1}} })
 		end
 		if skillModList:Flag(nil, "FarShot") then
 			skillModList:NewMod("Damage", "MORE", 30, "Far Shot", bor(ModFlag.Attack, ModFlag.Projectile), { type = "DistanceRamp", ramp = {{35,0},{70,1}} })
 		end
-		output.ProjectileCount = skillModList:Sum("BASE", skillCfg, "ProjectileCount")
+		local projBase = skillModList:Sum("BASE", skillCfg, "ProjectileCount")
+		local projMore = skillModList:More(skillCfg, "ProjectileCount")
+		output.ProjectileCount = round((projBase - 1) * projMore + 1)
 		if skillModList:Flag(skillCfg, "CannotPierce") then
 			output.PierceCountString = "Cannot pierce"
 		else
@@ -278,10 +350,10 @@ function calcs.offence(env, actor, activeSkill)
 	end
 	if skillFlags.melee then
 		if skillFlags.weapon1Attack then
-			actor.weaponRange1 = (actor.weaponData1.range and actor.weaponData1.range + skillModList:Sum("BASE", skillCfg, "MeleeWeaponRange")) or (env.data.weaponTypeInfo["None"].range + skillModList:Sum("BASE", skillCfg, "UnarmedRange"))	
+			actor.weaponRange1 = (actor.weaponData1.range and actor.weaponData1.range + skillModList:Sum("BASE", activeSkill.weapon1Cfg, "MeleeWeaponRange")) or (6 + skillModList:Sum("BASE", skillCfg, "UnarmedRange"))	
 		end
 		if skillFlags.weapon2Attack then
-			actor.weaponRange2 = (actor.weaponData2.range and actor.weaponData2.range + skillModList:Sum("BASE", skillCfg, "MeleeWeaponRange")) or (env.data.weaponTypeInfo["None"].range + skillModList:Sum("BASE", skillCfg, "UnarmedRange"))	
+			actor.weaponRange2 = (actor.weaponData2.range and actor.weaponData2.range + skillModList:Sum("BASE", activeSkill.weapon2Cfg, "MeleeWeaponRange")) or (6 + skillModList:Sum("BASE", skillCfg, "UnarmedRange"))	
 		end
 		if activeSkill.skillTypes[SkillType.MeleeSingleTarget] then
 			local range = 100
@@ -299,7 +371,7 @@ function calcs.offence(env, actor, activeSkill)
 			end
 		end
 	end
-	if skillFlags.area or skillData.radius then
+	if skillFlags.area or skillData.radius or (skillFlags.mine and activeSkill.skillTypes[SkillType.Aura]) then
 		output.AreaOfEffectMod = calcLib.mod(skillModList, skillCfg, "AreaOfEffect")
 		if skillData.radiusIsWeaponRange then
 			local range = 0
@@ -316,14 +388,22 @@ function calcs.offence(env, actor, activeSkill)
 			local baseRadius = skillData.radius + (skillData.radiusExtra or 0) + skillModList:Sum("BASE", skillCfg, "AreaOfEffect")
 			output.AreaOfEffectRadius = m_floor(baseRadius * m_sqrt(output.AreaOfEffectMod))
 			if breakdown then
-				breakdown.AreaOfEffectRadius = breakdown.area(baseRadius, output.AreaOfEffectMod, output.AreaOfEffectRadius)
+				breakdown.AreaOfEffectRadius = breakdown.area(baseRadius, output.AreaOfEffectMod, output.AreaOfEffectRadius, skillData.radiusLabel)
 			end
 			if skillData.radiusSecondary then
 				output.AreaOfEffectModSecondary = calcLib.mod(skillModList, skillCfg, "AreaOfEffect", "AreaOfEffectSecondary")
 				baseRadius = skillData.radiusSecondary + (skillData.radiusExtra or 0)
 				output.AreaOfEffectRadiusSecondary = m_floor(baseRadius * m_sqrt(output.AreaOfEffectModSecondary))
 				if breakdown then
-					breakdown.AreaOfEffectRadiusSecondary = breakdown.area(baseRadius, output.AreaOfEffectModSecondary, output.AreaOfEffectRadiusSecondary)
+					breakdown.AreaOfEffectRadiusSecondary = breakdown.area(baseRadius, output.AreaOfEffectModSecondary, output.AreaOfEffectRadiusSecondary, skillData.radiusSecondaryLabel)
+				end
+			end
+			if skillData.radiusTertiary then
+				output.AreaOfEffectModTertiary = calcLib.mod(skillModList, skillCfg, "AreaOfEffect", "AreaOfEffectTertiary")
+				baseRadius = skillData.radiusTertiary + (skillData.radiusExtra or 0)
+				output.AreaOfEffectRadiusTertiary = m_floor(baseRadius * m_sqrt(output.AreaOfEffectModTertiary))
+				if breakdown then
+					breakdown.AreaOfEffectRadiusTertiary = breakdown.area(baseRadius, output.AreaOfEffectModTertiary, output.AreaOfEffectRadiusTertiary, skillData.radiusTertiaryLabel)
 				end
 			end
 		end
@@ -364,7 +444,8 @@ function calcs.offence(env, actor, activeSkill)
 			breakdown.TrapTriggerRadius = breakdown.area(10, areaMod, output.TrapTriggerRadius)
 		end
 	elseif skillData.cooldown then
-		output.Cooldown = skillData.cooldown / calcLib.mod(skillModList, skillCfg, "CooldownRecovery")
+		local cooldownOverride = skillModList:Override(skillCfg, "CooldownRecovery")
+		output.Cooldown = cooldownOverride or skillData.cooldown / calcLib.mod(skillModList, skillCfg, "CooldownRecovery")
 		if breakdown then
 			breakdown.Cooldown = {
 				s_format("%.2fs ^8(base)", skillData.cooldown),
@@ -380,10 +461,10 @@ function calcs.offence(env, actor, activeSkill)
 		if breakdown then
 			breakdown.MineLayingTime = { }
 			breakdown.multiChain(breakdown.MineLayingTime, {
-				label = "Laying speed:",
-				base = s_format("%.2f ^8(base laying speed)", baseSpeed),
-				{ "%.2f ^8(increased/reduced laying speed)", 1 + skillModList:Sum("INC", skillCfg, "MineLayingSpeed") / 100 },
-				{ "%.2f ^8(more/less laying speed)", skillModList:More(skillCfg, "MineLayingSpeed") },
+				label = "Throwing speed:",
+				base = s_format("%.2f ^8(base throwing speed)", baseSpeed),
+				{ "%.2f ^8(increased/reduced throwing speed)", 1 + skillModList:Sum("INC", skillCfg, "MineLayingSpeed") / 100 },
+				{ "%.2f ^8(more/less throwing speed)", skillModList:More(skillCfg, "MineLayingSpeed") },
 				{ "%.2f ^8(action speed modifier)",  output.ActionSpeedMod },
 				total = s_format("= %.2f ^8per second", output.MineLayingSpeed),
 			})
@@ -393,6 +474,12 @@ function calcs.offence(env, actor, activeSkill)
 		output.MineDetonationRadius = 60 * m_sqrt(areaMod)
 		if breakdown then
 			breakdown.MineDetonationRadius = breakdown.area(60, areaMod, output.MineDetonationRadius)
+		end
+		if activeSkill.skillTypes[SkillType.Aura] then
+			output.MineAuraRadius = 35 * m_sqrt(output.AreaOfEffectMod)
+			if breakdown then
+				breakdown.MineAuraRadius = breakdown.area(35, output.AreaOfEffectMod, output.MineAuraRadius)
+			end
 		end
 	end
 	if skillFlags.totem then
@@ -433,9 +520,9 @@ function calcs.offence(env, actor, activeSkill)
 		debuffDurationMult = 1
 	end
 	do
-		output.DurationMod = calcLib.mod(skillModList, skillCfg, "Duration", "PrimaryDuration", "SkillAndDamagingAilmentDuration")
+		output.DurationMod = calcLib.mod(skillModList, skillCfg, "Duration", "PrimaryDuration", "SkillAndDamagingAilmentDuration", skillData.mineDurationAppliesToSkill and "MineDuration" or nil)
 		if breakdown then
-			breakdown.DurationMod = breakdown.mod(skillCfg, "Duration", "PrimaryDuration", "SkillAndDamagingAilmentDuration")
+			breakdown.DurationMod = breakdown.mod(skillCfg, "Duration", "PrimaryDuration", "SkillAndDamagingAilmentDuration", skillData.mineDurationAppliesToSkill and "MineDuration" or nil)
 		end
 		local durationBase = (skillData.duration or 0) + skillModList:Sum("BASE", skillCfg, "Duration", "PrimaryDuration")
 		if durationBase > 0 then
@@ -458,7 +545,7 @@ function calcs.offence(env, actor, activeSkill)
 		end
 		durationBase = (skillData.durationSecondary or 0) + skillModList:Sum("BASE", skillCfg, "Duration", "SecondaryDuration")
 		if durationBase > 0 then
-			local durationMod = calcLib.mod(skillModList, skillCfg, "Duration", "SecondaryDuration", "SkillAndDamagingAilmentDuration")
+			local durationMod = calcLib.mod(skillModList, skillCfg, "Duration", "SecondaryDuration", "SkillAndDamagingAilmentDuration", skillData.mineDurationAppliesToSkill and "MineDuration" or nil)
 			output.DurationSecondary = durationBase * durationMod
 			if skillData.debuffSecondary then
 				output.DurationSecondary = output.DurationSecondary * debuffDurationMult
@@ -476,15 +563,67 @@ function calcs.offence(env, actor, activeSkill)
 				t_insert(breakdown.DurationSecondary, s_format("= %.2fs", output.DurationSecondary))
 			end
 		end
-	end
-
-	-- Run skill setup function
-	do
-		local setupFunc = activeSkill.activeEffect.grantedEffect.setupFunc
-		if setupFunc then
-			setupFunc(activeSkill, output)
+		durationBase = (skillData.auraDuration or 0)
+		if durationBase > 0 then
+			local durationMod = calcLib.mod(skillModList, skillCfg, "Duration", "SkillAndDamagingAilmentDuration")
+			output.AuraDuration = durationBase * durationMod
+			if breakdown and output.AuraDuration ~= durationBase then
+				breakdown.AuraDuration = {
+					s_format("%.2fs ^8(base)", durationBase),
+					s_format("x %.2f ^8(duration modifier)", durationMod),
+					s_format("= %.2fs", output.AuraDuration),
+				}
+			end
+		end
+		durationBase = (skillData.reserveDuration or 0)
+		if durationBase > 0 then
+			local durationMod = calcLib.mod(skillModList, skillCfg, "Duration", "SkillAndDamagingAilmentDuration")
+			output.ReserveDuration = durationBase * durationMod
+			if breakdown and output.ReserveDuration ~= durationBase then
+				breakdown.ReserveDuration = {
+					s_format("%.2fs ^8(base)", durationBase),
+					s_format("x %.2f ^8(duration modifier)", durationMod),
+					s_format("= %.2fs", output.ReserveDuration),
+				}
+			end
 		end
 	end
+
+	-- Calculate mana cost (may be slightly off due to rounding differences)
+	do
+		local mult = m_floor(skillModList:More(skillCfg, "SupportManaMultiplier") * 100 + 0.0001) / 100
+		local more = m_floor(skillModList:More(skillCfg, "ManaCost") * 100 + 0.0001) / 100
+		local inc = skillModList:Sum("INC", skillCfg, "ManaCost")
+		local base = skillModList:Sum("BASE", skillCfg, "ManaCost")
+		local manaCost = activeSkill.activeEffect.grantedEffectLevel.manaCost or 0
+		if skillData.baseManaCostIsAtLeastPercentUnreservedMana then
+			manaCost = m_max(manaCost, m_floor((output.ManaUnreserved or 0) * skillData.baseManaCostIsAtLeastPercentUnreservedMana / 100))
+		end
+		output.ManaCost = m_floor(m_max(0, manaCost * mult * more * (1 + inc / 100) + base))
+		if activeSkill.skillTypes[SkillType.ManaCostPercent] and skillFlags.totem then
+			output.ManaCost = m_floor(output.Mana * output.ManaCost / 100)
+		end
+		if breakdown and output.ManaCost ~= manaCost then
+			breakdown.ManaCost = {
+				s_format("%d ^8(base mana cost)", manaCost)
+			}
+			if mult ~= 1 then
+				t_insert(breakdown.ManaCost, s_format("x %.2f ^8(mana cost multiplier)", mult))
+			end
+			if inc ~= 0 then
+				t_insert(breakdown.ManaCost, s_format("x %.2f ^8(increased/reduced mana cost)", 1 + inc/100))
+			end	
+			if more ~= 0 then
+				t_insert(breakdown.ManaCost, s_format("x %.2f ^8(more/less mana cost)", more))
+			end	
+			if base ~= 0 then
+				t_insert(breakdown.ManaCost, s_format("- %d ^8(- mana cost)", -base))
+			end
+			t_insert(breakdown.ManaCost, s_format("= %d", output.ManaCost))
+		end
+	end
+
+	runSkillFunc("preDamageFunc")
 
 	-- Handle corpse explosions
 	if skillData.explodeCorpse and skillData.corpseLife then
@@ -543,46 +682,24 @@ function calcs.offence(env, actor, activeSkill)
 	end
 	activeSkill.conversionTable["Chaos"] = { mult = 1 }
 
-	-- Calculate mana cost (may be slightly off due to rounding differences)
-	do
-		local more = m_floor(skillModList:More(skillCfg, "ManaCost") * 100 + 0.0001) / 100
-		local inc = skillModList:Sum("INC", skillCfg, "ManaCost")
-		local base = skillModList:Sum("BASE", skillCfg, "ManaCost")
-		local manaCost = activeSkill.activeEffect.grantedEffectLevel.manaCost or 0
-		output.ManaCost = m_floor(m_max(0, manaCost * more * (1 + inc / 100) + base))
-		if activeSkill.skillTypes[SkillType.ManaCostPercent] and skillFlags.totem then
-			output.ManaCost = m_floor(output.Mana * output.ManaCost / 100)
-		end
-		if breakdown and output.ManaCost ~= manaCost then
-			breakdown.ManaCost = {
-				s_format("%d ^8(base mana cost)", manaCost)
-			}
-			if more ~= 1 then
-				t_insert(breakdown.ManaCost, s_format("x %.2f ^8(mana cost multiplier)", more))
-			end
-			if inc ~= 0 then
-				t_insert(breakdown.ManaCost, s_format("x %.2f ^8(increased/reduced mana cost)", 1 + inc/100))
-			end	
-			if base ~= 0 then
-				t_insert(breakdown.ManaCost, s_format("- %d ^8(- mana cost)", -base))
-			end
-			t_insert(breakdown.ManaCost, s_format("= %d", output.ManaCost))
-		end
-	end
-
 	-- Configure damage passes
 	local passList = { }
 	if isAttack then
 		output.MainHand = { }
 		output.OffHand = { }
+		local critOverride = skillModList:Override(cfg, "WeaponBaseCritChance")
 		if skillFlags.weapon1Attack then
 			if breakdown then
 				breakdown.MainHand = LoadModule(calcs.breakdownModule, skillModList, output.MainHand)
 			end
 			activeSkill.weapon1Cfg.skillStats = output.MainHand
+			local source = copyTable(actor.weaponData1)
+			if critOverride and source.type and source.type ~= "None" then
+				source.CritChance = critOverride
+			end
 			t_insert(passList, {
 				label = "Main Hand",
-				source = actor.weaponData1,
+				source = source,
 				cfg = activeSkill.weapon1Cfg,
 				output = output.MainHand,
 				breakdown = breakdown and breakdown.MainHand,
@@ -594,6 +711,9 @@ function calcs.offence(env, actor, activeSkill)
 			end
 			activeSkill.weapon2Cfg.skillStats = output.OffHand
 			local source = copyTable(actor.weaponData2)
+			if critOverride and source.type and source.type ~= "None" then
+				source.CritChance = critOverride
+			end
 			if skillData.setOffHandBaseCritChance then
 				source.CritChance = skillData.setOffHandBaseCritChance
 			end
@@ -668,7 +788,7 @@ function calcs.offence(env, actor, activeSkill)
 		local globalOutput, globalBreakdown = output, breakdown
 		local source, output, cfg, breakdown = pass.source, pass.output, pass.cfg, pass.breakdown
 		
-		-- Calculate hit chance
+		-- Calculate hit chance 
 		output.Accuracy = calcLib.val(skillModList, "Accuracy", cfg)
 		if breakdown then
 			breakdown.Accuracy = breakdown.simple(nil, cfg, output.Accuracy, "Accuracy")
@@ -677,7 +797,7 @@ function calcs.offence(env, actor, activeSkill)
 			output.HitChance = 100
 		else
 			local enemyEvasion = round(calcLib.val(enemyDB, "Evasion"))
-			output.HitChance = calcLib.hitChance(enemyEvasion, output.Accuracy)
+			output.HitChance = calcs.hitChance(enemyEvasion, output.Accuracy)
 			if breakdown then
 				breakdown.HitChance = {
 					"Enemy level: "..env.enemyLevel..(env.configInput.enemyLevel and " ^8(overridden from the Configuration tab" or " ^8(can be overridden in the Configuration tab)"),
@@ -688,11 +808,14 @@ function calcs.offence(env, actor, activeSkill)
 		end
 
 		-- Calculate attack/cast speed
-		if activeSkill.skillTypes[SkillType.Instant] or skillFlags.forceInstant then
+		if activeSkill.activeEffect.grantedEffect.castTime == 0 and not skillData.castTimeOverride then
 			output.Time = 0
 			output.Speed = 0
 		elseif skillData.timeOverride then
 			output.Time = skillData.timeOverride
+			output.Speed = 1 / output.Time
+		elseif skillData.fixedCastTime then
+			output.Time = activeSkill.activeEffect.grantedEffect.castTime
 			output.Speed = 1 / output.Time
 		else
 			local baseTime
@@ -704,7 +827,7 @@ function calcs.offence(env, actor, activeSkill)
 					baseTime = 1 / ( source.AttackRate or 1 ) + skillModList:Sum("BASE", cfg, "Speed")
 				end
 			else
-				baseTime = activeSkill.activeEffect.grantedEffect.castTime or 1
+				baseTime = skillData.castTimeOverride or activeSkill.activeEffect.grantedEffect.castTime or 1
 			end
 			local inc = skillModList:Sum("INC", cfg, "Speed")
 			local more = skillModList:More(cfg, "Speed")
@@ -768,7 +891,7 @@ function calcs.offence(env, actor, activeSkill)
 			output.PreEffectiveCritChance = 0
 			output.CritChance = 0
 			output.CritMultiplier = 0
-			output.CritDegenMultiplier = 0
+			output.BonusCritDotMultiplier = 0
 			output.CritEffect = 1
 		else
 			local baseCrit = source.CritChance or 0
@@ -776,20 +899,16 @@ function calcs.offence(env, actor, activeSkill)
 				output.PreEffectiveCritChance = 100
 				output.CritChance = 100
 			else
-				local base = skillModList:Sum("BASE", cfg, "CritChance")
-				local inc = skillModList:Sum("INC", cfg, "CritChance")
+				local base = skillModList:Sum("BASE", cfg, "CritChance") + (env.mode_effective and enemyDB:Sum("BASE", nil, "SelfCritChance") or 0)
+				local inc = skillModList:Sum("INC", cfg, "CritChance") + (env.mode_effective and enemyDB:Sum("INC", nil, "SelfCritChance") or 0)
 				local more = skillModList:More(cfg, "CritChance")
-				local enemyExtra = env.mode_effective and enemyDB:Sum("BASE", nil, "SelfExtraCritChance") or 0
 				output.CritChance = (baseCrit + base) * (1 + inc / 100) * more
 				local preCapCritChance = output.CritChance
-				output.CritChance = m_min(output.CritChance, 95)
+				output.CritChance = m_min(output.CritChance, 100)
 				if (baseCrit + base) > 0 then
-					output.CritChance = m_max(output.CritChance, 5)
+					output.CritChance = m_max(output.CritChance, 0)
 				end
 				output.PreEffectiveCritChance = output.CritChance
-				if enemyExtra ~= 0 then
-					output.CritChance = m_min(output.CritChance + enemyExtra, 100)
-				end
 				local preLuckyCritChance = output.CritChance
 				if env.mode_effective and skillModList:Flag(cfg, "CritChanceLucky") then
 					output.CritChance = (1 - (1 - output.CritChance / 100) ^ 2) * 100
@@ -812,13 +931,9 @@ function calcs.offence(env, actor, activeSkill)
 						t_insert(breakdown.CritChance, s_format("x %.2f", more).." ^8(more/less)")
 					end
 					t_insert(breakdown.CritChance, s_format("= %.2f%% ^8(crit chance)", output.PreEffectiveCritChance))
-					if preCapCritChance > 95 then
-						local overCap = preCapCritChance - 95
+					if preCapCritChance > 100 then
+						local overCap = preCapCritChance - 100
 						t_insert(breakdown.CritChance, s_format("Crit is overcapped by %.2f%% (%d%% increased Critical Strike Chance)", overCap, overCap / more / (baseCrit + base) * 100))
-					end
-					if enemyExtra ~= 0 then
-						t_insert(breakdown.CritChance, s_format("+ %g ^8(extra chance for enemy to be crit)", enemyExtra))
-						t_insert(breakdown.CritChance, s_format("= %.2f%% ^8(chance to crit against enemy)", preLuckyCritChance))
 					end
 					if env.mode_effective and skillModList:Flag(cfg, "CritChanceLucky") then
 						t_insert(breakdown.CritChance, "Crit Chance is Lucky:")
@@ -837,6 +952,10 @@ function calcs.offence(env, actor, activeSkill)
 				output.CritMultiplier = 1
 			else
 				local extraDamage = skillModList:Sum("BASE", cfg, "CritMultiplier") / 100
+				local multiOverride = skillModList:Override(skillCfg, "CritMultiplier")
+				if multiOverride then
+					extraDamage = (multiOverride - 100) / 100
+				end
 				if env.mode_effective then
 					local enemyInc = 1 + enemyDB:Sum("INC", nil, "SelfCritMultiplier") / 100
 					extraDamage = round(extraDamage * enemyInc, 2)
@@ -850,12 +969,8 @@ function calcs.offence(env, actor, activeSkill)
 				end
 				output.CritMultiplier = 1 + m_max(0, extraDamage)
 			end
-			if skillModList:Flag(cfg, "NoCritDegenMultiplier") then
-				output.CritDegenMultiplier = 1
-			else
-				output.CritDegenMultiplier = 1 + skillModList:Sum("BASE", cfg, "CritDegenMultiplier") / 100 + (skillModList:Sum("BASE", cfg, "CritMultiplier") - 50) * skillModList:Sum("BASE", cfg, "CritMultiplierAppliesToDegen") / 10000
-			end
 			output.CritEffect = 1 - output.CritChance / 100 + output.CritChance / 100 * output.CritMultiplier
+			output.BonusCritDotMultiplier = (skillModList:Sum("BASE", cfg, "CritMultiplier") - 50) * skillModList:Sum("BASE", cfg, "CritMultiplierAppliesToDegen") / 10000
 			if breakdown and output.CritEffect ~= 1 then
 				breakdown.CritEffect = {
 					s_format("(1 - %.4f) ^8(portion of damage from non-crits)", output.CritChance/100),
@@ -866,7 +981,7 @@ function calcs.offence(env, actor, activeSkill)
 		end
 
 		-- Calculate Double Damage + Ruthless Blow chance/multipliers
-		output.DoubleDamageChance = m_min(skillModList:Sum("BASE", cfg, "DoubleDamageChance"), 100)
+		output.DoubleDamageChance = m_min(skillModList:Sum("BASE", cfg, "DoubleDamageChance") + (env.mode_effective and enemyDB:Sum("BASE", cfg, "SelfDoubleDamageChance") or 0), 100)
 		output.DoubleDamageEffect = 1 + output.DoubleDamageChance / 100
 		output.RuthlessBlowMaxCount = skillModList:Sum("BASE", cfg, "RuthlessBlowMaxCount")
 		if output.RuthlessBlowMaxCount > 0 then
@@ -883,8 +998,8 @@ function calcs.offence(env, actor, activeSkill)
 			local damageTypeMax = damageType.."Max"
 			local baseMultiplier = activeSkill.activeEffect.grantedEffectLevel.baseMultiplier or 1
 			local damageEffectiveness = activeSkill.activeEffect.grantedEffectLevel.damageEffectiveness or skillData.damageEffectiveness or 1
-			local addedMin = skillModList:Sum("BASE", cfg, damageTypeMin)
-			local addedMax = skillModList:Sum("BASE", cfg, damageTypeMax)
+			local addedMin = skillModList:Sum("BASE", cfg, damageTypeMin) + enemyDB:Sum("BASE", cfg, "Self"..damageTypeMin)
+			local addedMax = skillModList:Sum("BASE", cfg, damageTypeMax) + enemyDB:Sum("BASE", cfg, "Self"..damageTypeMax)
 			local baseMin = ((source[damageTypeMin] or 0) + (source[damageType.."BonusMin"] or 0)) * baseMultiplier + addedMin * damageEffectiveness
 			local baseMax = ((source[damageTypeMax] or 0) + (source[damageType.."BonusMax"] or 0)) * baseMultiplier + addedMax * damageEffectiveness
 			output[damageTypeMin.."Base"] = baseMin
@@ -917,16 +1032,21 @@ function calcs.offence(env, actor, activeSkill)
 		-- Calculate hit damage for each damage type
 		local totalHitMin, totalHitMax = 0, 0
 		local totalCritMin, totalCritMax = 0, 0
+		local ghostReaver = skillModList:Flag(nil, "GhostReaver")
 		output.LifeLeech = 0
 		output.LifeLeechInstant = 0
+		output.EnergyShieldLeech = 0
+		output.EnergyShieldLeechInstant = 0
 		output.ManaLeech = 0
 		output.ManaLeechInstant = 0
 		for pass = 1, 2 do
 			-- Pass 1 is critical strike damage, pass 2 is non-critical strike
 			cfg.skillCond["CriticalStrike"] = (pass == 1)
 			local lifeLeechTotal = 0
+			local energyShieldLeechTotal = 0
 			local manaLeechTotal = 0
 			local noLifeLeech = skillModList:Flag(cfg, "CannotLeechLife") or enemyDB:Flag(nil, "CannotLeechLifeFromSelf")
+			local noEnergyShieldLeech = skillModList:Flag(cfg, "CannotLeechEnergyShield") or enemyDB:Flag(nil, "CannotLeechEnergyShieldFromSelf")
 			local noManaLeech = skillModList:Flag(cfg, "CannotLeechMana") or enemyDB:Flag(nil, "CannotLeechManaFromSelf")
 			for _, damageType in ipairs(dmgTypeList) do
 				local min, max
@@ -957,26 +1077,29 @@ function calcs.offence(env, actor, activeSkill)
 						-- Apply enemy resistances and damage taken modifiers
 						local resist = 0
 						local pen = 0
-						local taken = enemyDB:Sum("INC", cfg, "DamageTaken", damageType.."DamageTaken")
+						local takenInc = enemyDB:Sum("INC", cfg, "DamageTaken", damageType.."DamageTaken")
+						local takenMore = enemyDB:More(cfg, "DamageTaken", damageType.."DamageTaken")
 						if damageType == "Physical" then
-							resist = enemyDB:Sum("BASE", nil, "PhysicalDamageReduction")
+							resist = m_max(0, enemyDB:Sum("BASE", nil, "PhysicalDamageReduction") + skillModList:Sum("BASE", cfg, "EnemyPhysicalDamageReduction"))
 						else
 							resist = enemyDB:Sum("BASE", nil, damageType.."Resist")
 							if isElemental[damageType] then
 								resist = resist + enemyDB:Sum("BASE", nil, "ElementalResist")
 								pen = skillModList:Sum("BASE", cfg, damageType.."Penetration", "ElementalPenetration")
-								taken = taken + enemyDB:Sum("INC", nil, "ElementalDamageTaken")
+								takenInc = takenInc + enemyDB:Sum("INC", nil, "ElementalDamageTaken")
+							elseif damageType == "Chaos" then
+								pen = skillModList:Sum("BASE", cfg, "ChaosPenetration")
 							end
 							resist = m_min(resist, 75)
 						end
 						if skillFlags.projectile then
-							taken = taken + enemyDB:Sum("INC", nil, "ProjectileDamageTaken")
+							takenInc = takenInc + enemyDB:Sum("INC", nil, "ProjectileDamageTaken")
 						end
 						if skillFlags.trap or skillFlags.mine then
-							taken = taken + enemyDB:Sum("INC", nil, "TrapMineDamageTaken")
+							takenInc = takenInc + enemyDB:Sum("INC", nil, "TrapMineDamageTaken")
 						end
-						local effMult = (1 + taken / 100)
-						if not isElemental[damageType] or not (skillModList:Flag(cfg, "IgnoreElementalResistances", "Ignore"..damageType.."Resistance") or enemyDB:Flag(nil, "SelfIgnore"..damageType.."Resistance")) then
+						local effMult = (1 + takenInc / 100) * takenMore
+						if not skillModList:Flag(cfg, "Ignore"..damageType.."Resistance", isElemental[damageType] and "IgnoreElementalResistances" or nil) and not enemyDB:Flag(nil, "SelfIgnore"..damageType.."Resistance") then
 							effMult = effMult * (1 - (resist - pen) / 100)
 						end
 						min = min * effMult
@@ -986,7 +1109,7 @@ function calcs.offence(env, actor, activeSkill)
 						end
 						if pass == 2 and breakdown and effMult ~= 1 then
 							t_insert(breakdown[damageType], s_format("x %.3f ^8(effective DPS modifier)", effMult))
-							breakdown[damageType.."EffMult"] = breakdown.effMult(damageType, resist, pen, taken, effMult)
+							breakdown[damageType.."EffMult"] = breakdown.effMult(damageType, resist, pen, takenInc, effMult, takenMore)
 						end
 					end
 					if pass == 2 and breakdown then
@@ -1004,19 +1127,25 @@ function calcs.offence(env, actor, activeSkill)
 							local lifeLeech
 							if skillModList:Flag(nil, "LifeLeechBasedOnChaosDamage") then
 								if damageType == "Chaos" then
-									lifeLeech = skillModList:Sum("BASE", cfg, "DamageLeech", "DamageLifeLeech", "PhysicalDamageLifeLeech", "LightningDamageLifeLeech", "ColdDamageLifeLeech", "FireDamageLifeLeech", "ChaosDamageLifeLeech", "ElementalDamageLifeLeech") + enemyDB:Sum("BASE", nil, "SelfDamageLifeLeech") / 100
+									lifeLeech = skillModList:Sum("BASE", cfg, "DamageLeech", "DamageLifeLeech", "PhysicalDamageLifeLeech", "LightningDamageLifeLeech", "ColdDamageLifeLeech", "FireDamageLifeLeech", "ChaosDamageLifeLeech", "ElementalDamageLifeLeech") + enemyDB:Sum("BASE", cfg, "SelfDamageLifeLeech") / 100
 								else
 									lifeLeech = 0
 								end
 							else
-								lifeLeech = skillModList:Sum("BASE", cfg, "DamageLeech", "DamageLifeLeech", damageType.."DamageLifeLeech", isElemental[damageType] and "ElementalDamageLifeLeech" or nil) + enemyDB:Sum("BASE", nil, "SelfDamageLifeLeech") / 100
+								lifeLeech = skillModList:Sum("BASE", cfg, "DamageLeech", "DamageLifeLeech", damageType.."DamageLifeLeech", isElemental[damageType] and "ElementalDamageLifeLeech" or nil) + enemyDB:Sum("BASE", cfg, "SelfDamageLifeLeech") / 100
 							end
 							if lifeLeech > 0 then
 								lifeLeechTotal = lifeLeechTotal + (min + max) / 2 * lifeLeech / 100
 							end
 						end
+						if not noEnergyShieldLeech then
+							local energyShieldLeech = skillModList:Sum("BASE", cfg, "DamageEnergyShieldLeech", damageType.."DamageEnergyShieldLeech", isElemental[damageType] and "ElementalDamageEnergyShieldLeech" or nil) + enemyDB:Sum("BASE", cfg, "SelfDamageEnergyShieldLeech") / 100
+							if energyShieldLeech > 0 then
+								energyShieldLeechTotal = energyShieldLeechTotal + (min + max) / 2 * energyShieldLeech / 100
+							end
+						end
 						if not noManaLeech then
-							local manaLeech = skillModList:Sum("BASE", cfg, "DamageLeech", "DamageManaLeech", damageType.."DamageManaLeech", isElemental[damageType] and "ElementalDamageManaLeech" or nil) + enemyDB:Sum("BASE", nil, "SelfDamageManaLeech") / 100
+							local manaLeech = skillModList:Sum("BASE", cfg, "DamageLeech", "DamageManaLeech", damageType.."DamageManaLeech", isElemental[damageType] and "ElementalDamageManaLeech" or nil) + enemyDB:Sum("BASE", cfg, "SelfDamageManaLeech") / 100
 							if manaLeech > 0 then
 								manaLeechTotal = manaLeechTotal + (min + max) / 2 * manaLeech / 100
 							end
@@ -1051,10 +1180,15 @@ function calcs.offence(env, actor, activeSkill)
 				manaLeechTotal = manaLeechTotal + skillData.manaLeechPerUse
 			end
 			local portion = (pass == 1) and (output.CritChance / 100) or (1 - output.CritChance / 100)
-			if skillModList:Flag(cfg, "InstantLifeLeech") and not skillModList:Flag(nil, "GhostReaver") then
+			if skillModList:Flag(cfg, "InstantLifeLeech") and not ghostReaver then
 				output.LifeLeechInstant = output.LifeLeechInstant + lifeLeechTotal * portion
 			else
 				output.LifeLeech = output.LifeLeech + lifeLeechTotal * portion
+			end
+			if skillModList:Flag(cfg, "InstantEnergyShieldLeech") then
+				output.EnergyShieldLeechInstant = output.EnergyShieldLeechInstant + energyShieldLeechTotal * portion
+			else
+				output.EnergyShieldLeech = output.EnergyShieldLeech + energyShieldLeechTotal * portion
 			end
 			if skillModList:Flag(cfg, "InstantManaLeech") then
 				output.ManaLeechInstant = output.ManaLeechInstant + manaLeechTotal * portion
@@ -1091,8 +1225,19 @@ function calcs.offence(env, actor, activeSkill)
 			local duration = amount / total / 0.02
 			return duration, duration * hitRate
 		end
-		output.LifeLeechDuration, output.LifeLeechInstances = getLeechInstances(output.LifeLeech, skillModList:Flag(nil, "GhostReaver") and globalOutput.EnergyShield or globalOutput.Life)
+		if ghostReaver then
+			output.EnergyShieldLeech = output.EnergyShieldLeech + output.LifeLeech
+			output.EnergyShieldLeechInstant = output.EnergyShieldLeechInstant + output.LifeLeechInstant
+			output.LifeLeech = 0
+			output.LifeLeechInstant = 0
+		end
+		output.LifeLeech = m_min(output.LifeLeech, globalOutput.MaxLifeLeechInstance)
+		output.LifeLeechDuration, output.LifeLeechInstances = getLeechInstances(output.LifeLeech, globalOutput.Life)
 		output.LifeLeechInstantRate = output.LifeLeechInstant * hitRate
+		output.EnergyShieldLeech = m_min(output.EnergyShieldLeech, globalOutput.MaxEnergyShieldLeechInstance)
+		output.EnergyShieldLeechDuration, output.EnergyShieldLeechInstances = getLeechInstances(output.EnergyShieldLeech, globalOutput.EnergyShield)
+		output.EnergyShieldLeechInstantRate = output.EnergyShieldLeechInstant * hitRate
+		output.ManaLeech = m_min(output.ManaLeech, globalOutput.MaxManaLeechInstance)
 		output.ManaLeechDuration, output.ManaLeechInstances = getLeechInstances(output.ManaLeech, globalOutput.Mana)
 		output.ManaLeechInstantRate = output.ManaLeechInstant * hitRate
 
@@ -1102,9 +1247,9 @@ function calcs.offence(env, actor, activeSkill)
 			output.EnergyShieldOnHit = 0
 			output.ManaOnHit = 0
 		else
-			output.LifeOnHit = (skillModList:Sum("BASE", skillCfg, "LifeOnHit") + enemyDB:Sum("BASE", skillCfg, "SelfLifeOnHit")) * globalOutput.LifeRecoveryMod
-			output.EnergyShieldOnHit = (skillModList:Sum("BASE", skillCfg, "EnergyShieldOnHit") + enemyDB:Sum("BASE", skillCfg, "SelfEnergyShieldOnHit")) * globalOutput.EnergyShieldRecoveryMod
-			output.ManaOnHit = (skillModList:Sum("BASE", skillCfg, "ManaOnHit") + enemyDB:Sum("BASE", skillCfg, "SelfManaOnHit")) * globalOutput.ManaRecoveryMod
+			output.LifeOnHit = (skillModList:Sum("BASE", cfg, "LifeOnHit") + enemyDB:Sum("BASE", cfg, "SelfLifeOnHit")) * globalOutput.LifeRecoveryMod
+			output.EnergyShieldOnHit = (skillModList:Sum("BASE", cfg, "EnergyShieldOnHit") + enemyDB:Sum("BASE", cfg, "SelfEnergyShieldOnHit")) * globalOutput.EnergyShieldRecoveryMod
+			output.ManaOnHit = (skillModList:Sum("BASE", cfg, "ManaOnHit") + enemyDB:Sum("BASE", cfg, "SelfManaOnHit")) * globalOutput.ManaRecoveryMod
 		end
 		output.LifeOnHitRate = output.LifeOnHit * hitRate
 		output.EnergyShieldOnHitRate = output.EnergyShieldOnHit * hitRate
@@ -1143,6 +1288,10 @@ function calcs.offence(env, actor, activeSkill)
 		combineStat("LifeLeechInstances", "DPS")
 		combineStat("LifeLeechInstant", "DPS")
 		combineStat("LifeLeechInstantRate", "DPS")
+		combineStat("EnergyShieldLeechDuration", "DPS")
+		combineStat("EnergyShieldLeechInstances", "DPS")
+		combineStat("EnergyShieldLeechInstant", "DPS")
+		combineStat("EnergyShieldLeechInstantRate", "DPS")
 		combineStat("ManaLeechDuration", "DPS")
 		combineStat("ManaLeechInstances", "DPS")
 		combineStat("ManaLeechInstant", "DPS")
@@ -1192,26 +1341,17 @@ function calcs.offence(env, actor, activeSkill)
 	end
 
 	-- Calculate leech rates
-	if skillModList:Flag(nil, "GhostReaver") then
-		output.LifeLeechRate = 0
-		output.LifeLeechPerHit = 0
-		output.EnergyShieldLeechInstanceRate = output.EnergyShield * 0.02 * calcLib.mod(skillModList, skillCfg, "LifeLeechRate")
-		output.EnergyShieldLeechRate = output.LifeLeechInstantRate * output.EnergyShieldRecoveryMod + m_min(output.LifeLeechInstances * output.EnergyShieldLeechInstanceRate, output.MaxEnergyShieldLeechRate) * output.EnergyShieldRecoveryRateMod
-		output.EnergyShieldLeechPerHit = output.LifeLeechInstant * output.EnergyShieldRecoveryMod + m_min(output.EnergyShieldLeechInstanceRate, output.MaxEnergyShieldLeechRate) * output.LifeLeechDuration * output.EnergyShieldRecoveryRateMod
-	else
-		output.LifeLeechInstanceRate = output.Life * 0.02 * calcLib.mod(skillModList, skillCfg, "LifeLeechRate")
-		output.LifeLeechRate = output.LifeLeechInstantRate * output.LifeRecoveryMod + m_min(output.LifeLeechInstances * output.LifeLeechInstanceRate, output.MaxLifeLeechRate) * output.LifeRecoveryRateMod
-		output.LifeLeechPerHit = output.LifeLeechInstant * output.LifeRecoveryMod + m_min(output.LifeLeechInstanceRate, output.MaxLifeLeechRate) * output.LifeLeechDuration * output.LifeRecoveryRateMod
-		output.EnergyShieldLeechRate = 0
-		output.EnergyShieldLeechPerHit = 0
-	end
-	do
-		output.ManaLeechInstanceRate = output.Mana * 0.02 * calcLib.mod(skillModList, skillCfg, "ManaLeechRate")
-		output.ManaLeechRate = output.ManaLeechInstantRate * output.ManaRecoveryMod + m_min(output.ManaLeechInstances * output.ManaLeechInstanceRate, output.MaxManaLeechRate) * output.ManaRecoveryRateMod
-		output.ManaLeechPerHit = output.ManaLeechInstant * output.ManaRecoveryMod  + m_min(output.ManaLeechInstanceRate, output.MaxManaLeechRate) * output.ManaLeechDuration * output.ManaRecoveryRateMod
-	end
-	skillFlags.leechES = output.EnergyShieldLeechRate > 0
+	output.LifeLeechInstanceRate = output.Life * 0.02 * calcLib.mod(skillModList, skillCfg, "LifeLeechRate")
+	output.LifeLeechRate = output.LifeLeechInstantRate * output.LifeRecoveryMod + m_min(output.LifeLeechInstances * output.LifeLeechInstanceRate, output.MaxLifeLeechRate) * output.LifeRecoveryRateMod
+	output.LifeLeechPerHit = output.LifeLeechInstant * output.LifeRecoveryMod + m_min(output.LifeLeechInstanceRate, output.MaxLifeLeechRate) * output.LifeLeechDuration * output.LifeRecoveryRateMod
+	output.EnergyShieldLeechInstanceRate = output.EnergyShield * 0.02 * calcLib.mod(skillModList, skillCfg, "EnergyShieldLeechRate")
+	output.EnergyShieldLeechRate = output.EnergyShieldLeechInstantRate * output.EnergyShieldRecoveryMod + m_min(output.EnergyShieldLeechInstances * output.EnergyShieldLeechInstanceRate, output.MaxEnergyShieldLeechRate) * output.EnergyShieldRecoveryRateMod
+	output.EnergyShieldLeechPerHit = output.EnergyShieldLeechInstant * output.EnergyShieldRecoveryMod + m_min(output.EnergyShieldLeechInstanceRate, output.MaxEnergyShieldLeechRate) * output.EnergyShieldLeechDuration * output.EnergyShieldRecoveryRateMod
+	output.ManaLeechInstanceRate = output.Mana * 0.02 * calcLib.mod(skillModList, skillCfg, "ManaLeechRate")
+	output.ManaLeechRate = output.ManaLeechInstantRate * output.ManaRecoveryMod + m_min(output.ManaLeechInstances * output.ManaLeechInstanceRate, output.MaxManaLeechRate) * output.ManaRecoveryRateMod
+	output.ManaLeechPerHit = output.ManaLeechInstant * output.ManaRecoveryMod  + m_min(output.ManaLeechInstanceRate, output.MaxManaLeechRate) * output.ManaLeechDuration * output.ManaRecoveryRateMod
 	skillFlags.leechLife = output.LifeLeechRate > 0
+	skillFlags.leechES = output.EnergyShieldLeechRate > 0
 	skillFlags.leechMana = output.ManaLeechRate > 0
 	if skillData.showAverage then
 		output.LifeLeechGainPerHit = output.LifeLeechPerHit + output.LifeOnHit
@@ -1227,7 +1367,7 @@ function calcs.offence(env, actor, activeSkill)
 			breakdown.LifeLeech = breakdown.leech(output.LifeLeechInstant, output.LifeLeechInstantRate, output.LifeLeechInstances, output.Life, "LifeLeechRate", output.MaxLifeLeechRate, output.LifeLeechDuration)
 		end
 		if skillFlags.leechES then
-			breakdown.EnergyShieldLeech = breakdown.leech(output.LifeLeechInstant, output.LifeLeechInstantRate, output.LifeLeechInstances, output.EnergyShield, "LifeLeechRate", output.MaxEnergyShieldLeechRate, output.LifeLeechDuration)
+			breakdown.EnergyShieldLeech = breakdown.leech(output.EnergyShieldLeechInstant, output.EnergyShieldLeechInstantRate, output.EnergyShieldLeechInstances, output.EnergyShield, "EnergyShieldLeechRate", output.MaxEnergyShieldLeechRate, output.EnergyShieldLeechDuration)
 		end
 		if skillFlags.leechMana then
 			breakdown.ManaLeech = breakdown.leech(output.ManaLeechInstant, output.ManaLeechInstantRate, output.ManaLeechInstances, output.Mana, "ManaLeechRate", output.MaxManaLeechRate, output.ManaLeechDuration)
@@ -1260,28 +1400,29 @@ function calcs.offence(env, actor, activeSkill)
 			local effMult = 1
 			if env.mode_effective then
 				local resist = 0
-				local taken = enemyDB:Sum("INC", nil, "DamageTaken", "DamageTakenOverTime", damageType.."DamageTaken", damageType.."DamageTakenOverTime")
+				local takenInc = enemyDB:Sum("INC", dotTypeCfg, "DamageTaken", "DamageTakenOverTime", damageType.."DamageTaken", damageType.."DamageTakenOverTime")
+				local takenMore = enemyDB:More(dotTypeCfg, "DamageTaken", "DamageTakenOverTime", damageType.."DamageTaken", damageType.."DamageTakenOverTime")
 				if damageType == "Physical" then
 					resist = enemyDB:Sum("BASE", nil, "PhysicalDamageReduction")
 				else
 					resist = enemyDB:Sum("BASE", nil, damageType.."Resist")
 					if isElemental[damageType] then
-						resist = resist + enemyDB:Sum("BASE", nil, "ElementalResist")
-						taken = taken + enemyDB:Sum("INC", nil, "ElementalDamageTaken")
+						resist = resist + enemyDB:Sum("BASE", dotTypeCfg, "ElementalResist")
+						takenInc = takenInc + enemyDB:Sum("INC", dotTypeCfg, "ElementalDamageTaken")
 					end
 					resist = m_min(resist, 75)
 				end
-				effMult = (1 - resist / 100) * (1 + taken / 100)
+				effMult = (1 - resist / 100) * (1 + takenInc / 100) * takenMore
 				output[damageType.."DotEffMult"] = effMult
 				if breakdown and effMult ~= 1 then
-					breakdown[damageType.."DotEffMult"] = breakdown.effMult(damageType, resist, 0, taken, effMult)
+					breakdown[damageType.."DotEffMult"] = breakdown.effMult(damageType, resist, 0, takenInc, effMult, takenMore)
 				end
 			end
 			local inc = skillModList:Sum("INC", dotTypeCfg, "Damage", damageType.."Damage", isElemental[damageType] and "ElementalDamage" or nil)
 			local more = round(skillModList:More(dotTypeCfg, "Damage", damageType.."Damage", isElemental[damageType] and "ElementalDamage" or nil), 2)
-			local mult = skillModList:Sum("BASE", dotTypeCfg, damageType.."DotMultiplier")
+			local mult = skillModList:Sum("BASE", dotTypeCfg, "DotMultiplier", damageType.."DotMultiplier")
 			local total = baseVal * (1 + inc/100) * more * (1 + mult/100) * effMult
-			if skillFlags.aura then
+			if activeSkill.skillTypes[SkillType.Aura] then
 				total = total * calcLib.mod(skillModList, dotTypeCfg, "AuraEffect")
 			end
 			output[damageType.."Dot"] = total
@@ -1461,8 +1602,8 @@ function calcs.offence(env, actor, activeSkill)
 					skillPart = skillCfg.skillPart,
 					skillTypes = skillCfg.skillTypes,
 					slotName = skillCfg.slotName,
-					flags = bor(ModFlag.Dot, ModFlag.Ailment),
-					keywordFlags = bor(band(skillCfg.keywordFlags, bnot(KeywordFlag.Hit)), KeywordFlag.Bleed, KeywordFlag.Ailment, KeywordFlag.PhysicalDot),
+					flags = bor(ModFlag.Dot, ModFlag.Ailment, band(cfg.flags, ModFlag.WeaponMask), band(cfg.flags, ModFlag.Melee) ~= 0 and ModFlag.MeleeHit or 0),
+					keywordFlags = bor(band(cfg.keywordFlags, bnot(KeywordFlag.Hit)), KeywordFlag.Bleed, KeywordFlag.Ailment, KeywordFlag.PhysicalDot),
 					skillCond = { },
 				}
 			end
@@ -1472,14 +1613,16 @@ function calcs.offence(env, actor, activeSkill)
 				breakdown.BleedPhysical = { damageTypes = { } }
 			end
 			for pass = 1, 2 do
-				dotCfg.skillCond["CriticalStrike"] = (pass == 1)
+				if not skillModList:Flag(dotCfg, "AilmentsAreNeverFromCrit") then
+					dotCfg.skillCond["CriticalStrike"] = (pass == 1)
+				end
 				local min, max = calcAilmentSourceDamage(activeSkill, output, dotCfg, pass == 2 and breakdown and breakdown.BleedPhysical, "Physical", 0)
 				output.BleedPhysicalMin = min
 				output.BleedPhysicalMax = max
 				if pass == 1 then
-					sourceCritDmg = (min + max) / 2  * output.CritDegenMultiplier
+					sourceCritDmg = (min + max) / 2 * (1 + skillModList:Sum("BASE", dotCfg, "DotMultiplier", "PhysicalDotMultiplier") / 100 + output.BonusCritDotMultiplier)
 				else
-					sourceHitDmg = (min + max) / 2
+					sourceHitDmg = (min + max) / 2 * (1 + skillModList:Sum("BASE", dotCfg, "DotMultiplier", "PhysicalDotMultiplier") / 100)
 				end
 			end
 			local basePercent = skillData.bleedBasePercent or 70
@@ -1490,15 +1633,18 @@ function calcs.offence(env, actor, activeSkill)
 				local effMult = 1
 				if env.mode_effective then
 					local resist = enemyDB:Sum("BASE", nil, "PhysicalDamageReduction")
-					local taken = enemyDB:Sum("INC", dotCfg, "DamageTaken", "DamageTakenOverTime", "PhysicalDamageTaken", "PhysicalDamageTakenOverTime")
-					effMult = (1 - resist / 100) * (1 + taken / 100)
+					local takenInc = enemyDB:Sum("INC", dotCfg, "DamageTaken", "DamageTakenOverTime", "PhysicalDamageTaken", "PhysicalDamageTakenOverTime")
+					local takenMore = enemyDB:More(dotCfg, "DamageTaken", "DamageTakenOverTime", "PhysicalDamageTaken", "PhysicalDamageTakenOverTime")
+					effMult = (1 - resist / 100) * (1 + takenInc / 100) * takenMore
 					globalOutput["BleedEffMult"] = effMult
 					if breakdown and effMult ~= 1 then
-						globalBreakdown.BleedEffMult = breakdown.effMult("Physical", resist, 0, taken, effMult)
+						globalBreakdown.BleedEffMult = breakdown.effMult("Physical", resist, 0, takenInc, effMult, takenMore)
 					end
 				end
+				local mult = skillModList:Sum("BASE", dotCfg, "PhysicalDotMultiplier", "BleedMultiplier")
 				local effectMod = calcLib.mod(skillModList, dotCfg, "AilmentEffect")
-				output.BleedDPS = baseVal * effectMod * effMult
+				local rateMod = calcLib.mod(skillModList, cfg, "BleedFaster")
+				output.BleedDPS = baseVal * effectMod * rateMod * effMult
 				local durationBase
 				if skillData.bleedDurationIsSkillDuration then
 					durationBase = skillData.duration
@@ -1506,7 +1652,7 @@ function calcs.offence(env, actor, activeSkill)
 					durationBase = 5
 				end
 				local durationMod = calcLib.mod(skillModList, dotCfg, "EnemyBleedDuration", "SkillAndDamagingAilmentDuration", skillData.bleedIsSkillEffect and "Duration" or nil) * calcLib.mod(enemyDB, nil, "SelfBleedDuration")
-				globalOutput.BleedDuration = durationBase * durationMod * debuffDurationMult
+				globalOutput.BleedDuration = durationBase * durationMod / rateMod * debuffDurationMult
 				if breakdown then
 					t_insert(breakdown.BleedDPS, s_format("x %.2f ^8(bleed deals %d%% per second)", basePercent/100, basePercent))
 					if effectMod ~= 1 then
@@ -1520,6 +1666,7 @@ function calcs.offence(env, actor, activeSkill)
 						label = "Bleed DPS:",
 						base = s_format("%.1f ^8(total damage per second)", baseVal), 
 						{ "%.2f ^8(ailment effect modifier)", effectMod },
+						{ "%.2f ^8(damage rate modifier)", rateMod },
 						{ "%.3f ^8(effective DPS modifier)", effMult },
 						total = s_format("= %.1f ^8per second", output.BleedDPS),
 					})
@@ -1529,6 +1676,9 @@ function calcs.offence(env, actor, activeSkill)
 						}
 						if durationMod ~= 1 then
 							t_insert(globalBreakdown.BleedDuration, s_format("x %.2f ^8(duration modifier)", durationMod))
+						end
+						if rateMod ~= 1 then
+							t_insert(globalBreakdown.BleedDuration, s_format("/ %.2f ^8(damage rate modifier)", rateMod))
 						end
 						if debuffDurationMult ~= 1 then
 							t_insert(globalBreakdown.BleedDuration, s_format("/ %.2f ^8(debuff expires slower/faster)", 1 / debuffDurationMult))
@@ -1547,8 +1697,8 @@ function calcs.offence(env, actor, activeSkill)
 					skillPart = skillCfg.skillPart,
 					skillTypes = skillCfg.skillTypes,
 					slotName = skillCfg.slotName,
-					flags = bor(ModFlag.Dot, ModFlag.Ailment),
-					keywordFlags = bor(band(skillCfg.keywordFlags, bnot(KeywordFlag.Hit)), KeywordFlag.Poison, KeywordFlag.Ailment, KeywordFlag.ChaosDot),
+					flags = bor(ModFlag.Dot, ModFlag.Ailment, band(cfg.flags, ModFlag.WeaponMask), band(cfg.flags, ModFlag.Melee) ~= 0 and ModFlag.MeleeHit or 0),
+					keywordFlags = bor(band(cfg.keywordFlags, bnot(KeywordFlag.Hit)), KeywordFlag.Poison, KeywordFlag.Ailment, KeywordFlag.ChaosDot),
 					skillCond = { },
 				}
 			end
@@ -1562,7 +1712,9 @@ function calcs.offence(env, actor, activeSkill)
 				breakdown.PoisonChaos = { damageTypes = { } }
 			end
 			for pass = 1, 2 do
-				dotCfg.skillCond["CriticalStrike"] = (pass == 1)
+				if not skillModList:Flag(dotCfg, "AilmentsAreNeverFromCrit") then
+					dotCfg.skillCond["CriticalStrike"] = (pass == 1)
+				end
 				local totalMin, totalMax = 0, 0
 				do
 					local min, max = calcAilmentSourceDamage(activeSkill, output, dotCfg, pass == 2 and breakdown and breakdown.PoisonChaos, "Chaos", 0)
@@ -1608,9 +1760,9 @@ function calcs.offence(env, actor, activeSkill)
 					totalMax = totalMax + max * nonChaosMult
 				end
 				if pass == 1 then
-					sourceCritDmg = (totalMin + totalMax) / 2  * output.CritDegenMultiplier
+					sourceCritDmg = (totalMin + totalMax) / 2 * (1 + skillModList:Sum("BASE", dotCfg, "DotMultiplier", "ChaosDotMultiplier") / 100 + output.BonusCritDotMultiplier)
 				else
-					sourceHitDmg = (totalMin + totalMax) / 2
+					sourceHitDmg = (totalMin + totalMax) / 2 * (1 + skillModList:Sum("BASE", dotCfg, "DotMultiplier", "ChaosDotMultiplier") / 100)
 				end
 			end
 			local baseVal = calcAilmentDamage("Poison", sourceHitDmg, sourceCritDmg) * 0.20
@@ -1620,15 +1772,17 @@ function calcs.offence(env, actor, activeSkill)
 				local effMult = 1
 				if env.mode_effective then
 					local resist = m_min(enemyDB:Sum("BASE", nil, "ChaosResist"), 75)
-					local taken = enemyDB:Sum("INC", nil, "DamageTaken", "DamageTakenOverTime", "ChaosDamageTaken", "ChaosDamageTakenOverTime")
-					effMult = (1 - resist / 100) * (1 + taken / 100)
+					local takenInc = enemyDB:Sum("INC", dotCfg, "DamageTaken", "DamageTakenOverTime", "ChaosDamageTaken", "ChaosDamageTakenOverTime")
+					local takenMore = enemyDB:More(dotCfg, "DamageTaken", "DamageTakenOverTime", "ChaosDamageTaken", "ChaosDamageTakenOverTime")
+					effMult = (1 - resist / 100) * (1 + takenInc / 100) * takenMore
 					globalOutput["PoisonEffMult"] = effMult
 					if breakdown and effMult ~= 1 then
-						globalBreakdown.PoisonEffMult = breakdown.effMult("Chaos", resist, 0, taken, effMult)
+						globalBreakdown.PoisonEffMult = breakdown.effMult("Chaos", resist, 0, takenInc, effMult, takenMore)
 					end
 				end
 				local effectMod = calcLib.mod(skillModList, dotCfg, "AilmentEffect")
-				output.PoisonDPS = baseVal * effectMod * effMult
+				local rateMod = calcLib.mod(skillModList, cfg, "PoisonFaster")
+				output.PoisonDPS = baseVal * effectMod * rateMod * effMult
 				local durationBase
 				if skillData.poisonDurationIsSkillDuration then
 					durationBase = skillData.duration
@@ -1636,7 +1790,7 @@ function calcs.offence(env, actor, activeSkill)
 					durationBase = 2
 				end
 				local durationMod = calcLib.mod(skillModList, dotCfg, "EnemyPoisonDuration", "SkillAndDamagingAilmentDuration", skillData.poisonIsSkillEffect and "Duration" or nil) * calcLib.mod(enemyDB, nil, "SelfPoisonDuration")
-				globalOutput.PoisonDuration = durationBase * durationMod * debuffDurationMult
+				globalOutput.PoisonDuration = durationBase * durationMod / rateMod * debuffDurationMult
 				output.PoisonDamage = output.PoisonDPS * globalOutput.PoisonDuration
 				if skillData.showAverage then
 					output.TotalPoisonAverageDamage = output.HitChance / 100 * output.PoisonChance / 100 * output.PoisonDamage
@@ -1651,6 +1805,7 @@ function calcs.offence(env, actor, activeSkill)
 						label = "Poison DPS:",
 						base = s_format("%.1f ^8(total damage per second)", baseVal), 
 						{ "%.2f ^8(ailment effect modifier)", effectMod },
+						{ "%.2f ^8(damage rate modifier)", rateMod },
 						{ "%.3f ^8(effective DPS modifier)", effMult },
 						total = s_format("= %.1f ^8per second", output.PoisonDPS),
 					})
@@ -1660,6 +1815,9 @@ function calcs.offence(env, actor, activeSkill)
 						}
 						if durationMod ~= 1 then
 							t_insert(globalBreakdown.PoisonDuration, s_format("x %.2f ^8(duration modifier)", durationMod))
+						end
+						if rateMod ~= 1 then
+							t_insert(globalBreakdown.PoisonDuration, s_format("/ %.2f ^8(damage rate modifier)", rateMod))
 						end
 						if debuffDurationMult ~= 1 then
 							t_insert(globalBreakdown.PoisonDuration, s_format("/ %.2f ^8(debuff expires slower/faster)", 1 / debuffDurationMult))
@@ -1699,8 +1857,8 @@ function calcs.offence(env, actor, activeSkill)
 					skillPart = skillCfg.skillPart,
 					skillTypes = skillCfg.skillTypes,
 					slotName = skillCfg.slotName,
-					flags = bor(ModFlag.Dot, ModFlag.Ailment),
-					keywordFlags = bor(band(skillCfg.keywordFlags, bnot(KeywordFlag.Hit)), KeywordFlag.Ignite, KeywordFlag.Ailment, KeywordFlag.FireDot),
+					flags = bor(ModFlag.Dot, ModFlag.Ailment, band(cfg.flags, ModFlag.WeaponMask), band(cfg.flags, ModFlag.Melee) ~= 0 and ModFlag.MeleeHit or 0),
+					keywordFlags = bor(band(cfg.keywordFlags, bnot(KeywordFlag.Hit)), KeywordFlag.Ignite, KeywordFlag.Ailment, KeywordFlag.FireDot),
 					skillCond = { },
 				}
 			end
@@ -1714,7 +1872,9 @@ function calcs.offence(env, actor, activeSkill)
 				breakdown.IgniteChaos = { damageTypes = { } }
 			end
 			for pass = 1, 2 do
-				dotCfg.skillCond["CriticalStrike"] = (pass == 1)
+				if not skillModList:Flag(dotCfg, "AilmentsAreNeverFromCrit") then
+					dotCfg.skillCond["CriticalStrike"] = (pass == 1)
+				end
 				local totalMin, totalMax = 0, 0
 				if canDeal.Physical and skillModList:Flag(cfg, "PhysicalCanIgnite") then
 					local min, max = calcAilmentSourceDamage(activeSkill, output, dotCfg, pass == 2 and breakdown and breakdown.IgnitePhysical, "Physical", dmgTypeFlags.Fire)
@@ -1752,9 +1912,9 @@ function calcs.offence(env, actor, activeSkill)
 					totalMax = totalMax + max
 				end
 				if pass == 1 then
-					sourceCritDmg = (totalMin + totalMax) / 2 * output.CritDegenMultiplier
+					sourceCritDmg = (totalMin + totalMax) / 2 * (1 + skillModList:Sum("BASE", dotCfg, "DotMultiplier", "FireDotMultiplier") / 100 + output.BonusCritDotMultiplier)
 				else
-					sourceHitDmg = (totalMin + totalMax) / 2
+					sourceHitDmg = (totalMin + totalMax) / 2 * (1 + skillModList:Sum("BASE", dotCfg, "DotMultiplier", "FireDotMultiplier") / 100)
 				end
 			end
 			local igniteMode = env.configInput.igniteMode or "AVERAGE"
@@ -1772,19 +1932,20 @@ function calcs.offence(env, actor, activeSkill)
 				local effMult = 1
 				if env.mode_effective then
 					local resist = m_min(enemyDB:Sum("BASE", nil, "FireResist", "ElementalResist"), 75)
-					local taken = enemyDB:Sum("INC", dotCfg, "DamageTaken", "DamageTakenOverTime", "FireDamageTaken", "FireDamageTakenOverTime", "ElementalDamageTaken")
-					effMult = (1 - resist / 100) * (1 + taken / 100)
+					local takenInc = enemyDB:Sum("INC", dotCfg, "DamageTaken", "DamageTakenOverTime", "FireDamageTaken", "FireDamageTakenOverTime", "ElementalDamageTaken")
+					local takenMore = enemyDB:More(dotCfg, "DamageTaken", "DamageTakenOverTime", "FireDamageTaken", "FireDamageTakenOverTime", "ElementalDamageTaken")
+					effMult = (1 - resist / 100) * (1 + takenInc / 100) * takenMore
 					globalOutput["IgniteEffMult"] = effMult
 					if breakdown and effMult ~= 1 then
-						globalBreakdown.IgniteEffMult = breakdown.effMult("Fire", resist, 0, taken, effMult)
+						globalBreakdown.IgniteEffMult = breakdown.effMult("Fire", resist, 0, takenInc, effMult, takenMore)
 					end
 				end
 				local effectMod = calcLib.mod(skillModList, dotCfg, "AilmentEffect")
-				local burnRateMod = calcLib.mod(skillModList, cfg, "IgniteBurnFaster") / calcLib.mod(skillModList, cfg, "IgniteBurnSlower")
-				output.IgniteDPS = baseVal * effectMod * burnRateMod * effMult
+				local rateMod = calcLib.mod(skillModList, cfg, "IgniteBurnFaster") / calcLib.mod(skillModList, cfg, "IgniteBurnSlower")
+				output.IgniteDPS = baseVal * effectMod * rateMod * effMult
 				local incDur = skillModList:Sum("INC", dotCfg, "EnemyIgniteDuration", "SkillAndDamagingAilmentDuration") + enemyDB:Sum("INC", nil, "SelfIgniteDuration")
 				local moreDur = enemyDB:More(nil, "SelfIgniteDuration")
-				globalOutput.IgniteDuration = 4 * (1 + incDur / 100) * moreDur / burnRateMod * debuffDurationMult
+				globalOutput.IgniteDuration = 4 * (1 + incDur / 100) * moreDur / rateMod * debuffDurationMult
 				if skillFlags.igniteCanStack then
 					output.IgniteDamage = output.IgniteDPS * globalOutput.IgniteDuration
 					if skillData.showAverage then
@@ -1801,7 +1962,7 @@ function calcs.offence(env, actor, activeSkill)
 						label = "Ignite DPS:",
 						base = s_format("%.1f ^8(total damage per second)", baseVal), 
 						{ "%.2f ^8(ailment effect modifier)", effectMod },
-						{ "%.2f ^8(burn rate modifier)", burnRateMod },
+						{ "%.2f ^8(burn rate modifier)", rateMod },
 						{ "%.3f ^8(effective DPS modifier)", effMult },
 						total = s_format("= %.1f ^8per second", output.IgniteDPS),
 					})
@@ -1838,8 +1999,8 @@ function calcs.offence(env, actor, activeSkill)
 						if moreDur ~= 1 then
 							t_insert(globalBreakdown.IgniteDuration, s_format("x %.2f ^8(more/less duration)", moreDur))
 						end
-						if burnRateMod ~= 1 then
-							t_insert(globalBreakdown.IgniteDuration, s_format("/ %.2f ^8(burn rate modifier)", burnRateMod))
+						if rateMod ~= 1 then
+							t_insert(globalBreakdown.IgniteDuration, s_format("/ %.2f ^8(burn rate modifier)", rateMod))
 						end
 						if debuffDurationMult ~= 1 then
 							t_insert(globalBreakdown.IgniteDuration, s_format("/ %.2f ^8(debuff expires slower/faster)", 1 / debuffDurationMult))
@@ -1973,7 +2134,7 @@ function calcs.offence(env, actor, activeSkill)
 		combineStat("FreezeDurationMod", "AVERAGE")
 	end
 
-	if skillFlags.hit and skillData.decay then
+	if skillFlags.hit and skillData.decay and canDeal.Chaos then
 		-- Calculate DPS for Essence of Delirium's Decay effect
 		skillFlags.decay = true
 		activeSkill.decayCfg = {
@@ -1988,16 +2149,17 @@ function calcs.offence(env, actor, activeSkill)
 		local effMult = 1
 		if env.mode_effective then
 			local resist = m_min(enemyDB:Sum("BASE", nil, "ChaosResist"), 75)
-			local taken = enemyDB:Sum("INC", nil, "DamageTaken", "DamageTakenOverTime", "ChaosDamageTaken", "ChaosDamageTakenOverTime")
-			effMult = (1 - resist / 100) * (1 + taken / 100)
+			local takenInc = enemyDB:Sum("INC", nil, "DamageTaken", "DamageTakenOverTime", "ChaosDamageTaken", "ChaosDamageTakenOverTime")
+			local takenMore = enemyDB:More(nil, "DamageTaken", "DamageTakenOverTime", "ChaosDamageTaken", "ChaosDamageTakenOverTime")
+			effMult = (1 - resist / 100) * (1 + takenInc / 100) * takenMore
 			output["DecayEffMult"] = effMult
 			if breakdown and effMult ~= 1 then
-				breakdown.DecayEffMult = breakdown.effMult("Chaos", resist, 0, taken, effMult)
+				breakdown.DecayEffMult = breakdown.effMult("Chaos", resist, 0, takenInc, effMult, takenMore)
 			end
 		end
 		local inc = skillModList:Sum("INC", dotCfg, "Damage", "ChaosDamage")
 		local more = round(skillModList:More(dotCfg, "Damage", "ChaosDamage"), 2)
-		local mult = skillModList:Sum("BASE", dotTypeCfg, "ChaosDotMultiplier")
+		local mult = skillModList:Sum("BASE", dotTypeCfg, "DotMultiplier", "ChaosDotMultiplier")
 		output.DecayDPS = skillData.decay * (1 + inc/100) * more * (1 + mult/100) * effMult
 		local durationMod = calcLib.mod(skillModList, dotCfg, "Duration", "SkillAndDamagingAilmentDuration")
 		output.DecayDuration = 10 * durationMod * debuffDurationMult

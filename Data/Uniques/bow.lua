@@ -6,12 +6,15 @@ return {
 Arborix
 Assassin Bow
 Variant: Pre 3.5.0
+Variant: Pre 3.9.0
 Variant: Current
-Requires Level 62
+Requires Level 62, 212 Dex
 Source: Vendor recipe
-{variant:1}Adds (60–70) to (180–210) Physical Damage 
-{variant:2}Adds (95-115) to (240-265) Physical Damage 
-(80–100)% increased Evasion Rating
+Implicits: 1
+{variant:3}+(15-25)% to Global Critical Strike Multiplier
+{variant:1}Adds (60-70) to (180-210) Physical Damage
+{variant:2,3}Adds (95-115) to (240-265) Physical Damage
+(80-100)% increased Evasion Rating
 2 Additional Arrows
 Every 16 seconds you gain iron Reflexes for 8 seconds
 30% more Bow Damage at Close Range while you have iron Reflexes
@@ -23,38 +26,91 @@ Assassin Bow
 Variant: Pre 1.2.0
 Variant: Pre 2.0.0
 Variant: {2_6}Pre 3.5.0
+Variant: Pre 3.9.0
 Variant: Current
 Requires Level 62, 212 Dex
-Implicits: 1
+Implicits: 2
 {variant:1,2}(6-12)% increased Elemental Damage with Weapons
+{variant:5}+(15-25)% to Global Critical Strike Multiplier
 {variant:1}(75-100)% increased Physical Damage
 {variant:2,3}(150-180)% increased Physical Damage
-{variant:4}(200-260)% increased Physical Damage
+{variant:4,5}(200-260)% increased Physical Damage
 +(10-20) to Dexterity
 Adds 25 to 50 Fire Damage
 {variant:1}5% increased Attack Speed
-{variant:2,3,4}(10-14)% increased Attack Speed
+{variant:2,3,4,5}(10-14)% increased Attack Speed
 {variant:1,2,3}100% More Bow Damage at Close Range
-{variant:4}50% More Bow Damage at Close Range
+{variant:4,5}50% More Bow Damage at Close Range
 Bow Knockback at Close Range
+]],[[
+The Crimson Storm
+Steelwood Bow
+League: Betrayal
+Variant: Crit Multi while Rare/Unique Nearby
+Variant: Attack Speed while Rare/Unique Nearby
+Variant: Damage per Power Charge
+Variant: Damage per Frenzy Charge
+Variant: Damage per Endurance Charge
+Variant: Accuracy and Quality
+Variant: Attack Speed and Quality
+Variant: Attack Speed/Trigger Blood Rage on Kill
+Variant: Cast Speed/Trigger Arcane Surge on Kill
+Variant: Minion Attack and Cast Speed
+Variant: Double Damage
+Variant: Double Damage while Foccused
+Variant: Socketed Spell Trigger
+Requires Level 57, 190 Dex
+Implicits: 1
+(4-6)% increased Movement Speed
+(140â€“170)% increased Physical Damage
+(25â€“35)% increased Critical Strike Chance
+50% chance to inflict Bleeding on Critical Strike with Attacks
+Enemies you inflict Bleeding on grant (60-100)% increased Flask Charges
+Adds (100-120) to (150-165) Physical Damage against Bleeding Enemies
+50% chance to Maim Enemies on Critical Strike with Attacks
+{variant:1}{crafted}+(18-45)% Critical Strike Multiplier while there is a Rare or Unique Enemy Nearby
+{variant:2}{crafted}(11-22)% increased Attack Speed while a Rare or Unique Enemy is Nearby
+{variant:3}{crafted}(5-6)% increased Damage per Power Charge
+{variant:4}{crafted}(5-6)% increased Damage per Frenzy Charge
+{variant:5}{crafted}(5-6)% increased Damage per Endurance Charge
+{variant:6}{crafted}+(30-250) to Accuracy Rating
+{variant:7}{crafted}(8-16)% increased Attack Speed
+{variant:6,7}{crafted}+(7-18)% to Quality
+{variant:8}{crafted}(8-16)% increased Attack Speed
+{variant:8}{crafted}10% chance to Trigger Level 1 Blood Rage when you Kill an Enemy
+{variant:9}{crafted}(7-13)% increased Cast Speed
+{variant:9}{crafted}10% chance to gain Arcane Surge when you Kill an Enemy
+{variant:10}{crafted}Minions have (16-28)% increased Attack Speed
+{variant:10}{crafted}Minions have (16-28)% increased Cast Speed
+{variant:11}{crafted}(4-12)% chance to deal Double Damage
+{variant:12}{crafted}(13-36)% chance to deal Double Damage while Focussed
+{variant:13}{crafted}Trigger a Socketed Spell when you Use a Skill
 ]],[[
 Darkscorn
 Assassin Bow
+League: Legion
+Source: Drops from normal{Maraketh} legion
 Variant: Pre 1.2.0
 Variant: Pre 2.0.0
 Variant: Pre 2.6.0
+Variant: Pre 3.7.0
+Variant: Pre 3.9.0
 Variant: Current
 Requires Level 62, 212 Dex
-Implicits: 1
+Implicits: 2
 {variant:1,2}(6-12)% increased Elemental Damage with Weapons
+{variant:6}+(15-25)% to Global Critical Strike Multiplier
 {variant:1,2,3}(100-125)% increased Physical Damage
-{variant:4}(130-150)% increased Physical Damage
+{variant:4,5,6}(130-150)% increased Physical Damage
 {variant:2}Adds (6-10) to (10-14) Physical Damage
 {variant:3,4}Adds (10-15) to (15-20) Physical Damage
-10% increased Attack Speed
+{variant:5,6}Adds (15-20) to (25-30) Physical Damage
+{variant:1,2,3,4}10% increased Attack Speed
+{variant:5,6}20% increased Attack Speed
+(15-30)% increased Global Accuracy Rating
 25% of Physical Damage Converted to Chaos Damage
-(15-30)% increased Accuracy Rating
-25% of Physical Damage taken as Chaos Damage
+25% of Physical Damage from Hits taken as Chaos Damage
+{variant:5,6}20% chance for Poisons inflicted with this Weapon to deal 300% more Damage
 ]],[[
 Death's Harp
 Death Bow
@@ -63,6 +119,7 @@ Variant: Pre 2.2.0
 Variant: {2_6}Pre 3.0.0
 Variant: Current
 Requires Level 32, 107 Dex
+Implicits: 1
 (30-50)% increased Critical Strike Chance
 (100-125)% increased Physical Damage
 10% increased Attack Speed
@@ -76,6 +133,7 @@ Source: Upgraded from unique{Death's Harp} via prophecy{The Bowstring's Music}
 Variant: {2_6}Pre 3.0.0
 Variant: Current
 Requires Level 44, 107 Dex
+Implicits: 1
 (30-50)% increased Critical Strike Chance
 (100-125)% increased Physical Damage
 Adds (10-20) to (30-35) Physical Damage
@@ -130,14 +188,14 @@ Ranger Bow
 Source: Drops from unique{The Elder} (Tier 6+)
 Variant: Pre 3.4.0
 Variant: Current
-Requires Level 60
-Adds (130–150) to (270–300) Cold Damage 
-4% increased Movement Speed per Frenzy Charge 
-+(400–500) to Accuracy Rating 
-{variant:2}(15–25)% increased Attack Speed
-12 to 14 Cold Damage per Frenzy Charge 
-2% chance to Avoid Elemental Damage when Hit per Frenzy Charge 
-0.5% of Attack Damage Leeched as Life per Frenzy Charge 
+Requires Level 60, 212 Dex
+Adds (130-150) to (270-300) Cold Damage
+4% increased Movement Speed per Frenzy Charge
++(400-500) to Accuracy Rating
+{variant:2}(15-25)% increased Attack Speed
+12 to 14 Cold Damage per Frenzy Charge
+2% chance to Avoid Elemental Damage when Hit per Frenzy Charge
+0.5% of Attack Damage Leeched as Life per Frenzy Charge
 {variant:1}400 Cold Damage taken per second per Frenzy Charge while moving
 {variant:2}200 Cold Damage taken per second per Frenzy Charge while moving
 Elder Item
@@ -147,23 +205,27 @@ Decimation Bow
 Variant: Pre 1.2.0
 Variant: Pre 2.6.0
 Variant: {2_6}Pre 3.0.0
+Variant: Pre 3.7.0
 Variant: Current
 Requires Level 53, 170 Dex
+Implicits: 1
 (30-50)% increased Critical Strike Chance
 {variant:1,2}(90-100)% increased Physical Damage
-{variant:3,4}(110-125)% increased Physical Damage
-{variant:2,3,4}Adds (25-35) to (36-45) Physical Damage
+{variant:3,4,5}(110-125)% increased Physical Damage
+{variant:2,3,4,5}Adds (25-35) to (36-45) Physical Damage
 +(20-30) to Dexterity
-+(200-250) to Accuracy Rating
+{variant:1,2,3,4}+(200-250) to Accuracy Rating
+{variant:5}+(350-400) to Accuracy Rating
 {variant:1,2,3}Arrows always Pierce
-{variant:4}Arrows Pierce all Targets
+{variant:4,5}Arrows Pierce all Targets
 10% increased Movement Speed
 {variant:1,2}Cannot Leech
-{variant:3,4}Cannot Leech Life
+{variant:3,4,5}Cannot Leech Life
 ]],[[
 Iron Commander
 Death Bow
 Requires Level 32, 107 Dex
+Implicits: 1
 (30-50)% increased Critical Strike Chance
 Adds (8-12) to (16-24) Physical Damage
 (14-20)% increased Attack Speed
@@ -205,6 +267,7 @@ Harbinger Bow
 Variant: Pre 2.5.0
 Variant: Current
 Requires Level 68, 212 Dex
+Implicits: 1
 (30-50)% increased Critical Strike Chance
 No Physical Damage
 Adds (120-140) to (180-210) Cold Damage
@@ -218,17 +281,19 @@ Quill Rain
 Short Bow
 Variant: Pre 2.6.0
 Variant: {2_6}Pre 3.5.0
+Variant: Pre 3.9.0
 Variant: Current
 Requires Level 5, 26 Dex
 +(10-20) to Dexterity
-{variant:2,3}100% increased Physical Damage
+{variant:2,3,4}100% increased Physical Damage
 100% increased Attack Speed
 +(25-50) to Accuracy Rating
 (50-100)% increased Projectile Speed
 {variant:1}50% less Weapon Damage
 {variant:2}40% less Weapon Damage
 {variant:3}40% less Damage
-{variant:2,3}+2 Mana gained for each Enemy hit by Attacks
+{variant:4}30% less Damage
+{variant:2,3,4}+2 Mana gained for each Enemy hit by Attacks
 ]],[[
 Reach of the Council
 Spine Bow
@@ -252,11 +317,14 @@ Requires Level 64, 212 Dex
 Roth's Reach
 Recurve Bow
 Variant: {2_6}Pre 3.0.0
+Variant: Pre 3.9.0
 Variant: Current
 Requires Level 18, 71 Dex
+Implicits: 1
+{variant:3}+(15-25)% to Global Critical Strike Multiplier
 (60-80)% increased Physical Damage
 {variant:1}(20-40)% increased Elemental Damage with Weapons
-{variant:2}(20-40)% increased Elemental Damage with Attack Skills
+{variant:2,3}(20-40)% increased Elemental Damage with Attack Skills
 (4-8)% increased Attack Speed
 Skills Chain +1 times
 30% increased Projectile Speed
@@ -266,7 +334,7 @@ Crude Bow
 Upgrade: Upgrades to unique{Silverbough} via prophecy{The Silverwood}
 Variant: Pre 2.0.0
 Variant: Current
-Requires Level 2
+Requires 14 Dex
 +1 to Level of Socketed Bow Gems
 {variant:1}(50-80)% increased Physical Damage
 {variant:2}(80-100)% increased Physical Damage
@@ -277,7 +345,7 @@ Requires Level 2
 Silverbough
 Crude Bow
 Source: Upgraded from unique{Silverbranch} using prophecy{The Silverwood}
-Requires Level 36
+Requires Level 36, 14 Dex
 +1 to Level of Socketed Gems
 +1 to Level of Socketed Bow Gems
 (80-100)% increased Physical Damage
@@ -286,13 +354,14 @@ Adds (15-25) to (50-60) Physical Damage
 +30 to Accuracy Rating
 +10 Mana gained on Kill
 ]],[[
-Slivertongue 
+Slivertongue
 Harbinger Bow
 Source: Drops from unique{Guardian of the Hydra}
 Variant: {2_6}Pre 3.0.0
 Variant: Pre 3.5.0
 Variant: Current
 Requires Level 68, 212 Dex
+Implicits: 1
 (30-50)% increased Critical Strike Chance
 {variant:1,2}Adds (60-75) to (170-220) Physical Damage
 {variant:3}Adds (110-125) to (245-265) Physical Damage
@@ -326,12 +395,16 @@ Adds 1 to 85 Lightning Damage
 ]],[[
 Voltaxic Rift
 Spine Bow
+Variant: Pre 3.9.0
+Variant: Current
 Requires Level 64, 212 Dex
 Adds 1 to (275-325) Lightning Damage
 (10-15)% increased Attack Speed
 60% of Lightning Damage Converted to Chaos Damage
 10% Chance to Shock
 Your Chaos Damage can Shock
+{variant:2}Shock Enemies as though dealing 300% more Damage
+{variant:2}Your Shocks can increase Damage taken by up to a maximum of 100%
 ]],[[
 Windripper
 Imperial Bow
@@ -374,6 +447,7 @@ Citadel Bow
 League: Breach
 Source: Upgraded from unique{Xoph's Inception} using currency{Blessing of Xoph}
 Variant: Pre 3.3.0
+Variant: Pre 3.9.0
 Variant: Current
 Requires Level 64, 185 Dex
 (250-300)% increased Physical Damage
@@ -381,6 +455,7 @@ Requires Level 64, 185 Dex
 10% chance to Ignite
 {variant:1}Ignites your Skills cause spread to other Enemies within a Radius of 12
 {variant:2}Ignites your Skills cause spread to other Enemies within a Radius of 15
+{variant:3}Socketed Gems are Supported by level 20 Ignite Proliferation
 Recover (40-60) Life when you Ignite an Enemy
 ]],
 }

@@ -22,6 +22,11 @@ itemBases["Prismatic Jewel"] = {
 	tags = { default = true, jewel = true, intjewel = true, dexjewel = true, strjewel = true, not_for_sale = true, },
 	req = { },
 }
+itemBases["Timeless Jewel"] = {
+	type = "Jewel",
+	tags = { default = true, jewel = true, intjewel = true, dexjewel = true, strjewel = true, not_for_sale = true, },
+	req = { },
+}
 
 itemBases["Ghastly Eye Jewel"] = {
 	type = "Jewel",
@@ -45,5 +50,24 @@ itemBases["Searching Eye Jewel"] = {
 	type = "Jewel",
 	subType = "Abyss",
 	tags = { default = true, not_for_sale = true, abyss_jewel_ranged = true, abyss_jewel = true, },
+	req = { },
+}
+
+itemBases["Large Cluster Jewel"] = {
+	type = "Jewel",
+	subType = "Cluster",
+	tags = { default = true, jewel = true, not_for_sale = true, expansion_jewel_large = true, },
+	req = { },
+}
+itemBases["Medium Cluster Jewel"] = {
+	type = "Jewel",
+	subType = "Cluster",
+	tags = { default = true, jewel = true, not_for_sale = true, expansion_jewel_medium = true, },
+	req = { },
+}
+itemBases["Small Cluster Jewel"] = {
+	type = "Jewel",
+	subType = "Cluster",
+	tags = { default = true, jewel = true, not_for_sale = true, expansion_jewel_small = true, },
 	req = { },
 }

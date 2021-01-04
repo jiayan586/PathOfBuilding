@@ -9,6 +9,10 @@ local skills, mod, flag, skill = ...
 #flags attack melee projectile
 #mods
 
+#skill MeleeUseContactPoint Default Attack
+#flags attack melee projectile
+#mods
+
 #skill GemDetonateMines
 #flags spell
 #mods
@@ -31,17 +35,22 @@ local skills, mod, flag, skill = ...
 #baseMod skill("showAverage", true)
 #mods
 
-#skill SupportUniqueCosprisMaliceColdSpellsCastOnMeleeCriticalStrike Cospri's Malice
-	fromItem = true,
-#mods
-
-#skill UniqueSupportGreaterVolley Greater Volley
+#skill SupportAuraDuration Blessing
 	fromItem = true,
 	statMap = {
-		["support_greater_volley_projectile_damage_+%_final"] = {
-			mod("Damage", "MORE", nil, ModFlag.Projectile),
+		["support_aura_duration_base_buff_duration"] = {
+			skill("auraDuration", nil),
+			div = 1000,
+		},
+		["support_aura_duration_base_reserve_duration"] = {
+			skill("reserveDuration", nil),
+			div = 1000,
 		},
 	},
+#mods
+
+#skill SupportUniqueCosprisMaliceColdSpellsCastOnMeleeCriticalStrike Cospri's Malice
+	fromItem = true,
 #mods
 
 #skill RepeatingShockwave
@@ -207,7 +216,7 @@ local skills, mod, flag, skill = ...
 			mod("ChaosMax", "BASE", nil, 0, KeywordFlag.Spell, { type = "GlobalEffect", effectType = "Aura" }),
 		},
 	},
-#baseMod skill("radius", 36)
+#baseMod skill("radius", 40)
 #mods
 
 #skill FireAegis
@@ -223,7 +232,7 @@ local skills, mod, flag, skill = ...
 #skill VaalAuraElementalDamageHealing
 #flags spell aura area duration
 	fromItem = true,
-#baseMod skill("radius", 36)
+#baseMod skill("radius", 40)
 #mods
 
 #skill IcestormUniqueStaff12
@@ -242,6 +251,11 @@ local skills, mod, flag, skill = ...
 
 #skill MerveilWarp
 #flags spell area duration
+	fromItem = true,
+#mods
+
+#skill LightningAegis
+#flags spell
 	fromItem = true,
 #mods
 
@@ -438,7 +452,7 @@ local skills, mod, flag, skill = ...
 	fromItem = true,
 	statMap = {
 		["base_chaos_damage_resistance_%"] = {
-			mod("ChaosResist", "BASE", -10, 0, 0, { type = "GlobalEffect", effectType = "Debuff" }),
+			mod("ChaosResist", "BASE", nil, 0, 0, { type = "GlobalEffect", effectType = "Debuff" }),
 		},
 	},
 #mods

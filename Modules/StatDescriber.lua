@@ -34,7 +34,12 @@ local function matchLimit(lang, val)
 	for _, desc in ipairs(lang) do
 		local match = true
 		for i, limit in ipairs(desc.limit) do
-			if (limit[2] ~= "#" and val[i].min > limit[2]) or (limit[1] ~= "#" and val[i].min < limit[1]) then
+			if limit[1] == "!" then
+				if val[i].min == limit[2] then
+					match = false
+					break
+				end
+			elseif (limit[2] ~= "#" and val[i].min > limit[2]) or (limit[1] ~= "#" and val[i].min < limit[1]) then
 				match = false
 				break
 			end
@@ -120,8 +125,9 @@ local function applySpecial(val, spec)
 		val[spec.v].min = 100 + val[spec.v].min
 		val[spec.v].max = 100 + val[spec.v].max
 	elseif spec.k == "multiplicative_permyriad_damage_modifier" then
-		val[spec.v].min = 100 + val[spec.v].min / 100
-		val[spec.v].max = 100 + val[spec.v].max / 100
+		val[spec.v].min = 100 + round(val[spec.v].min / 100, 1)
+		val[spec.v].max = 100 + round(val[spec.v].max / 100, 1)
+		val[spec.v].fmt = "g"
 	elseif spec.k == "reminderstring" or spec.k == "canonical_line" then
 	else
 		--ConPrintf("Unknown description function: %s", spec.k)

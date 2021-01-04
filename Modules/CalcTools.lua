@@ -4,6 +4,8 @@
 -- Various functions used by the calculation modules
 --
 local pairs = pairs
+local t_insert = table.insert
+local t_remove = table.remove
 local m_floor = math.floor
 local m_min = math.min
 local m_max = math.max
@@ -23,17 +25,6 @@ function calcLib.val(modStore, name, cfg)
 	else
 		return 0
 	end
-end
-
--- Calculate hit chance
-function calcLib.hitChance(evasion, accuracy)
-	local rawChance = accuracy / (accuracy + (evasion / 4) ^ 0.8) * 100
-	return m_max(m_min(round(rawChance), 95), 5)	
-end
-
--- Calculate physical damage reduction from armour
-function calcLib.armourReduction(armour, raw)
-	return round(armour / (armour + raw * 10) * 100)
 end
 
 -- Validate the level of the given gem
@@ -56,18 +47,24 @@ function calcLib.validateGemLevel(gemInstance)
 	end	
 end
 
--- Check if given support skill can support the given skill types
-function calcLib.canGrantedEffectSupportTypes(grantedEffect, skillTypes)
-	for _, skillType in pairs(grantedEffect.excludeSkillTypes) do
-		if skillTypes[skillType] then
-			return false
+-- Evaluate a skill type postfix expression
+function calcLib.doesTypeExpressionMatch(checkTypes, skillTypes, minionTypes)
+	local stack = { }
+	for _, skillType in pairs(checkTypes) do
+		if skillType == SkillType.OR then
+			local other = t_remove(stack)
+			stack[#stack] = stack[#stack] or other
+		elseif skillType == SkillType.AND then
+			local other = t_remove(stack)
+			stack[#stack] = stack[#stack] and other
+		elseif skillType == SkillType.NOT then
+			stack[#stack] = not stack[#stack]
+		else
+			t_insert(stack, skillTypes[skillType] or (minionTypes and minionTypes[skillType]) or false)
 		end
 	end
-	if not grantedEffect.requireSkillTypes[1] then
-		return true
-	end
-	for _, skillType in pairs(grantedEffect.requireSkillTypes) do
-		if skillTypes[skillType] then
+	for _, val in ipairs(stack) do
+		if val then
 			return true
 		end
 	end
@@ -76,7 +73,7 @@ end
 
 -- Check if given support skill can support the given active skill
 function calcLib.canGrantedEffectSupportActiveSkill(grantedEffect, activeSkill)
-	if grantedEffect.unsupported then
+	if grantedEffect.unsupported or activeSkill.activeEffect.grantedEffect.cannotBeSupported then
 		return false
 	end
 	if grantedEffect.supportGemsOnly and not activeSkill.activeEffect.gemData then
@@ -85,10 +82,10 @@ function calcLib.canGrantedEffectSupportActiveSkill(grantedEffect, activeSkill)
 	if activeSkill.summonSkill then
 		return calcLib.canGrantedEffectSupportActiveSkill(grantedEffect, activeSkill.summonSkill)
 	end
-	if activeSkill.minionSkillTypes and calcLib.canGrantedEffectSupportTypes(grantedEffect, activeSkill.minionSkillTypes) then
-		return true
+	if grantedEffect.excludeSkillTypes[1] and calcLib.doesTypeExpressionMatch(grantedEffect.excludeSkillTypes, activeSkill.skillTypes) then
+		return false
 	end
-	return calcLib.canGrantedEffectSupportTypes(grantedEffect, activeSkill.skillTypes)
+	return not grantedEffect.requireSkillTypes[1] or calcLib.doesTypeExpressionMatch(grantedEffect.requireSkillTypes, activeSkill.skillTypes, not grantedEffect.ignoreMinionTypes and activeSkill.minionSkillTypes)
 end
 
 -- Check if given gem is of the given type ("all", "strength", "melee", etc)
@@ -97,6 +94,7 @@ function calcLib.gemIsType(gem, type)
 			(type == "elemental" and (gem.tags.fire or gem.tags.cold or gem.tags.lightning)) or 
 			(type == "aoe" and gem.tags.area) or
 			(type == "trap or mine" and (gem.tags.trap or gem.tags.mine)) or
+			(type == gem.name:lower()) or
 			gem.tags[type])
 end
 
@@ -144,27 +142,25 @@ function calcLib.buildSkillInstanceStats(skillInstance, grantedEffect)
 	end
 	local level = grantedEffect.levels[skillInstance.level]
 	local availableEffectiveness
-	if not skillInstance.actorLevel then
-		skillInstance.actorLevel = level.levelRequirement
-	end
+	local actorLevel = skillInstance.actorLevel or level.levelRequirement
 	for index, stat in ipairs(grantedEffect.stats) do
 		local statValue
-		if grantedEffect.statInterpolation[index] == 3 then
+		if level.statInterpolation[index] == 3 then
 			-- Effectiveness interpolation
 			if not availableEffectiveness then
 				availableEffectiveness = 
-					(3.885209 + 0.360246 * (skillInstance.actorLevel - 1)) * grantedEffect.baseEffectiveness
-					* (1 + grantedEffect.incrementalEffectiveness) ^ (skillInstance.actorLevel - 1)
+					(3.885209 + 0.360246 * (actorLevel - 1)) * grantedEffect.baseEffectiveness
+					* (1 + grantedEffect.incrementalEffectiveness) ^ (actorLevel - 1)
 			end
 			statValue = round(availableEffectiveness * level[index])
-		elseif grantedEffect.statInterpolation[index] == 2 then
+		elseif level.statInterpolation[index] == 2 then
 			-- Linear interpolation; I'm actually just guessing how this works
 			local nextLevel = m_min(skillInstance.level + 1, #grantedEffect.levels)
 			local nextReq = grantedEffect.levels[nextLevel].levelRequirement
 			local prevReq = grantedEffect.levels[nextLevel - 1].levelRequirement
 			local nextStat = grantedEffect.levels[nextLevel][index]
 			local prevStat = grantedEffect.levels[nextLevel - 1][index]
-			statValue = round(prevStat + (nextStat - prevStat) * (skillInstance.actorLevel - prevReq) / (nextReq - prevReq))
+			statValue = round(prevStat + (nextStat - prevStat) * (actorLevel - prevReq) / (nextReq - prevReq))
 		else
 			-- Static value
 			statValue = level[index] or 1

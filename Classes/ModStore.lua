@@ -41,6 +41,8 @@ function ModStoreClass:ScaleAddMod(mod, scale)
 		local scaledMod = copyTable(mod)
 		if type(scaledMod.value) == "number" then
 			scaledMod.value = (m_floor(scaledMod.value) == scaledMod.value) and m_modf(scaledMod.value * scale) or scaledMod.value * scale
+		elseif type(scaledMod.value) == "table" and scaledMod.value.mod then
+			scaledMod.value.mod.value = (m_floor(scaledMod.value.mod.value) == scaledMod.value.mod.value) and m_modf(scaledMod.value.mod.value * scale) or scaledMod.value.mod.value * scale
 		end
 		self:AddMod(scaledMod)
 	end
@@ -61,6 +63,8 @@ function ModStoreClass:ScaleAddList(modList, scale)
 			local scaledMod = copyTable(modList[i])
 			if type(scaledMod.value) == "number" then
 				scaledMod.value = (m_floor(scaledMod.value) == scaledMod.value) and m_modf(scaledMod.value * scale) or scaledMod.value * scale
+			elseif type(scaledMod.value) == "table" and scaledMod.value.mod then
+				scaledMod.value.mod.value = (m_floor(scaledMod.value.mod.value) == scaledMod.value.mod.value) and m_modf(scaledMod.value.mod.value * scale) or scaledMod.value.mod.value * scale
 			end
 			self:AddMod(scaledMod)
 		end
@@ -234,7 +238,7 @@ function ModStoreClass:EvalMod(mod, cfg)
 				mult = target:GetMultiplier(tag.var, cfg)
 			end
 			local threshold = tag.threshold or target:GetMultiplier(tag.thresholdVar, cfg)
-			if (tag.upper and mult > tag.threshold) or (not tag.upper and mult < tag.threshold) then
+			if (tag.upper and mult > threshold) or (not tag.upper and mult < threshold) then
 				return
 			end
 		elseif tag.type == "PerStat" then
@@ -307,6 +311,8 @@ function ModStoreClass:EvalMod(mod, cfg)
 					end
 				end
 			end
+		elseif tag.type == "Limit" then
+			value = m_min(value, tag.limit or self:GetMultiplier(tag.limitVar, cfg))
 		elseif tag.type == "Condition" then
 			local match = false
 			if tag.varList then
@@ -404,6 +410,20 @@ function ModStoreClass:EvalMod(mod, cfg)
 			end
 		elseif tag.type == "SlotName" then
 			if not cfg or tag.slotName ~= cfg.slotName then
+				return
+			end
+		elseif tag.type == "ModFlagOr" then
+			if not cfg or not cfg.modFlags then
+				return
+			end
+			if band(cfg.modFlags, tag.modFlags) == 0 then
+				return
+			end
+		elseif tag.type == "KeywordFlagAnd" then
+			if not cfg or not cfg.keywordFlags then
+				return
+			end
+			if band(cfg.keywordFlags, tag.keywordFlags) ~= tag.keywordFlags then
 				return
 			end
 		end
